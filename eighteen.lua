@@ -6,68 +6,54 @@
 --
 --
 --    ▼ instructions below ▼
-grid__ = include("lightsout/lib/ggrid")
-MusicUtil = require "musicutil"
+GridLib = include("eighteen/lib/ggrid")
+Sequence = include("eighteen/lib/sequence")
 lattice = require("lattice")
 
 engine.name = "PolyPerc"
 
 beat_current = 0
+sequencers = {}
 
 function init()
-    grid_ = grid__:new()
 
-    scale_full = MusicUtil.generate_scale_of_length(12, 1, 64)
-    for _, note in ipairs(MusicUtil.generate_scale_of_length(12, 1, 128)) do
-        table.insert(scale_full, note)
+    for i = 1, 4 do
+        sequencers[i] = Sequence:new({
+            id = i
+        })
     end
-    -- shuffled = {}
-    -- for i, v in ipairs(scale_full) do
-    --   local pos = math.random(1, #shuffled+1)
-    --   table.insert(shuffled, pos, v)
-    -- end
-    -- scale_full=shuffled
-    scales = {}
-    k = 1
-    for col = 1, 16 do
-        for row = 1, 8 do
-            if col == 1 then
-                scales[row] = {}
-            end
-            scales[row][col] = scale_full[k]
-            k = k + 1
-        end
-        k = k - 3
-    end
+    print("sequencer 3 id: ", sequencers[3].id)
+    grid_ = GridLib:new()
+
+    -- set default sequencer
+    grid_.sequencer = sequencers[1]
 
     -- start lattice
     local sequencer = lattice:new{
         ppqn = 96
     }
+    step_time_last = 0
+    step_time_before_last = 0
     sequencer:new_pattern({
         action = function(t)
-            print("division")
-            beat_current = beat_current + 1
-            grid_:set_beat(beat_current)
-            redraw()
+            sequencers[1]:update()
+            -- print("step: ", sequencers[1].step)
+            step_time_before_last = step_time_last
+            step_time_last = clock.get_beats()
         end,
         division = 1 / 8
     })
-    sequencer:hard_restart()
-
-end
-
-function play_note(col, step)
-    local row = (step - 1) % 8 + 1
-    local light = grid_.lightsout[row][col]
-    if light > 0 then
-        print(row, col)
-        print(scales[row][col])
-        local freq = MusicUtil.note_num_to_freq(scales[row][col])
-        grid_.visual[row][col] = 15
-        engine.hz(freq)
-        -- grid_:toggle_key(row,col)
-    end
+    clock.run(function()
+        clock.sleep(0.1)
+        sequencer:hard_restart()
+    end)
+    clock.run(function()
+        while true do
+            clock.sleep(1 / 15)
+            redraw()
+        end
+    end)
+    -- sequencers[1]:update()
 end
 
 function enc(k, d)
@@ -75,7 +61,19 @@ function enc(k, d)
 end
 
 function key(k, z)
-
+    if z == 1 then
+        step_time_between = step_time_last - step_time_before_last
+        step_time_since = clock.get_beats() - step_time_last
+        -- determine if closer to the last step or the next step
+        print(step_time_before_last, step_time_last, step_time_since, step_time_between / 2, sequencers[1].step,
+            sequencers[1].step_next)
+        if step_time_since < step_time_between / 2 then
+            print("beat previous: ", sequencers[1].step)
+            sequencers[1]:toggle(sequencers[1].step, 3)
+        else
+            sequencers[1]:toggle(sequencers[1].step_next, 3)
+        end
+    end
 end
 
 function redraw()
@@ -83,7 +81,6 @@ function redraw()
     -- draw the grid
     local grid_square_size = 7
     local visual = grid_:get_visual()
-    print(visual[1][1])
     for i, v in ipairs(visual) do
         for j, u in ipairs(v) do
             -- draw a box 

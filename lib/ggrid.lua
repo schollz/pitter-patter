@@ -18,6 +18,10 @@ function GGrid:new(args)
     end
     print("grid columns: " .. m.g.cols)
 
+    m.width = 16
+    m.height = 8
+    m.scroll_y = 0
+
     -- setup visual
     m.beat = 0
     m.visual = {}
@@ -67,10 +71,6 @@ function GGrid:key_press(row, col, on)
     end
 end
 
-function GGrid:set_beat(beat)
-    self.beat = beat
-end
-
 function GGrid:toggle_key(row, col)
     for i = row - 1, row + 1 do
         for j = col - 1, col + 1 do
@@ -89,28 +89,36 @@ function GGrid:get_visual()
         end
     end
 
-    -- illuminate lights out
-    for row in ipairs(self.lightsout) do
-        for col in ipairs(self.lightsout[row]) do
-            if self.visual[row][col] < 7 then
-                self.visual[row][col] = 7 * self.lightsout[row][col]
-            end
-        end
-    end
-
     -- illuminate currently pressed button
     for k, _ in pairs(self.pressed_buttons) do
         local row, col = k:match("(%d+),(%d+)")
         self.visual[tonumber(row)][tonumber(col)] = 15
     end
 
-    if self.beat > 0 then
-        local col = self.beat % 16 + 1
-        for row = 1, 8 do
-            self.visual[row][col] = 5
+    -- illuminate sequence
+    if self.sequencer ~= nil then
+        -- figure out which of the 'width' steps to show based on 
+        -- self.sequencer.step and self.width 
+        local step_offset = math.floor((self.sequencer.step - 1) / self.width) * self.width
+        for i = 1, self.width do
+            for j = 1, self.height - 1 do
+                if self.sequencer.matrix[i + step_offset][j] > 0 then
+                    self.visual[j][i] = 5
+                end
+            end
         end
-    end
 
+        -- show current step
+        for i = 1, self.height - 1 do
+            local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
+            v = v + 5
+            if v > 15 then
+                v = 15
+            end
+            self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
+        end
+
+    end
     return self.visual
 end
 
