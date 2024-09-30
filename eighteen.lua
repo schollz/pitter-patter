@@ -10,9 +10,8 @@ GridLib = include("eighteen/lib/ggrid")
 Sequence = include("eighteen/lib/sequence")
 lattice = require("lattice")
 
-engine.name = "PolyPerc"
+engine.name = "MxSamplez"
 
-beat_current = 0
 sequencers = {}
 
 function init()
@@ -32,14 +31,11 @@ function init()
     local sequencer = lattice:new{
         ppqn = 96
     }
-    step_time_last = 0
-    step_time_before_last = 0
+
     sequencer:new_pattern({
         action = function(t)
             sequencers[1]:update()
-            -- print("step: ", sequencers[1].step)
-            step_time_before_last = step_time_last
-            step_time_last = clock.get_beats()
+            redraw()
         end,
         division = 1 / 8
     })
@@ -57,22 +53,20 @@ function init()
 end
 
 function enc(k, d)
-
+    if k == 3 then
+        sequencers[1].note_offset = sequencers[1].note_offset + d
+    end
 end
 
 function key(k, z)
-    if z == 1 then
-        step_time_between = step_time_last - step_time_before_last
-        step_time_since = clock.get_beats() - step_time_last
-        -- determine if closer to the last step or the next step
-        print(step_time_before_last, step_time_last, step_time_since, step_time_between / 2, sequencers[1].step,
-            sequencers[1].step_next)
-        if step_time_since < step_time_between / 2 then
-            print("beat previous: ", sequencers[1].step)
-            sequencers[1]:toggle(sequencers[1].step, 3)
-        else
-            sequencers[1]:toggle(sequencers[1].step_next, 3)
-        end
+    if z == 1 and k == 3 then
+        local row = 2
+        local col = 3
+        local step_index = col + math.floor((sequencers[1].step - 1) / 16) * 16
+        sequencers[1]:toggle_pos(step_index, row)
+    elseif z == 1 and k == 2 then
+        sequencers[1]:update()
+
     end
 end
 

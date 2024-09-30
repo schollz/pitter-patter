@@ -66,18 +66,14 @@ function GGrid:key_press(row, col, on)
     else
         self.pressed_buttons[row .. "," .. col] = nil
     end
-    if on then
-        self:toggle_key(row, col)
-    end
-end
+    if on and row == self.height and col < self.width - 1 then
+        -- toggle sequence from keyboard
+        self.sequence:toggle_note(col)
+    elseif on and row < self.height then
+        -- toggle specific position
+        local step_index = col + math.floor((self.sequence.step - 1) / 16) * 16
+        self.sequence:toggle_pos(step_index, row)
 
-function GGrid:toggle_key(row, col)
-    for i = row - 1, row + 1 do
-        for j = col - 1, col + 1 do
-            if i >= 1 and i <= 8 and j >= 1 and j <= self.grid_width then
-                self.lightsout[i][j] = 1 - self.lightsout[i][j]
-            end
-        end
     end
 end
 
@@ -102,7 +98,8 @@ function GGrid:get_visual()
         local step_offset = math.floor((self.sequencer.step - 1) / self.width) * self.width
         for i = 1, self.width do
             for j = 1, self.height - 1 do
-                if self.sequencer.matrix[i + step_offset][j] > 0 then
+                local note_index = (j + self.sequencer.note_offset - 1) % self.sequencer.note_limit + 1
+                if self.sequencer.matrix[i + step_offset][note_index] > 0 then
                     self.visual[j][i] = 5
                 end
             end
