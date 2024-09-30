@@ -40,7 +40,7 @@ function Sequence:init()
     self.step = 1
     self.step_next = 1
     self.movement = 1
-    self.sequence_limit = 32
+    self.sequence_limit = 8
     self.note_limit = self.note_max
     self.note_offset = 0
     self.notes_on = {}
@@ -95,6 +95,7 @@ function Sequence:update()
         local instrument = note_data[1]
         local note = note_data[2]
         print("note_off", instrument, note)
+        engine.mx_note_off(instrument, note)
     end
 
     -- emit those notes
@@ -102,6 +103,8 @@ function Sequence:update()
     for i, note in ipairs(notes) do
         table.insert(self.notes_on, {self.instrument, note})
         print("note_on", self.instrument, note)
+        local velocity = 60
+        engine.mx_note_on(_path.code .. "eighteen/data/" .. self.instrument, note, velocity)
     end
 
     -- check if there are notes to ghost

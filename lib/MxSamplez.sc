@@ -89,6 +89,7 @@ MxSamplez {
 		if (ins.at(folder).isNil,{
 			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
 		});
+		["note_on",folder,note,velocity].postln;
 		ins.at(folder).noteOn(note,velocity);
 	}
 
@@ -124,6 +125,7 @@ MxSamplez {
 		arg folder,note;
 		if (ins.at(folder).notNil,{
 			ins.at(folder).noteOff(note);
+			["note_off",folder,note].postln;
 		});
 	}
 
