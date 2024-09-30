@@ -36,48 +36,86 @@ function Sequence:init()
     self.matrix = matrix
     self.notes_to_ghost = {}
     self.instrument = "marimba_white"
-    self.direction = 3
     self.step = 1
     self.step_next = 1
     self.movement = 1
-    self.sequence_limit = 8
     self.note_limit = self.note_max
     self.note_offset = 0
     self.notes_on = {}
     self.step_time_last = clock.get_beats()
     self.step_time_before_last = self.step_time_last
+
+    -- setup parameters
+    local params_menu = {{
+        id = "direction",
+        name = "direction",
+        min = 1,
+        max = 4,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            local directions = {"forward", "backward", "ping pong", "random"}
+            return directions[param:get()]
+        end
+    }, {
+        id = "limit",
+        name = "limit",
+        min = 2,
+        max = self.sequence_max,
+        exp = false,
+        div = 1,
+        default = 8,
+        formatter = function(param)
+            return math.floor(param:get()) .. " steps"
+        end
+    }}
+    params:add_group("SEQUENCE " .. self.id, #params_menu)
+    for _, pram in ipairs(params_menu) do
+        pram.id = "sequence" .. self.id .. "_" .. pram.id
+        params:add{
+            type = "control",
+            id = pram.id,
+            name = pram.name,
+            controlspec = controlspec.new(pram.min, pram.max, pram.exp and "exp" or "lin", pram.div, pram.default,
+                pram.unit or "", pram.div / (pram.max - pram.min)),
+            formatter = pram.formatter
+        }
+        if pram.hide then
+            params:hide(pram.id)
+        end
+    end
 end
 
-function Sequence:set_direction_delta(d)
-    local direction = self.direction + d
-    direction = (direction - 1) % 4 + 1
-    self.direction = direction
+function Sequence:get_param(v)
+    return params:get("sequence" .. self.id .. "_" .. v)
 end
 
 function Sequence:step_peek(step, movement)
-    if self.direction == 1 then
+    if self:get_param("direction") == 1 then
         movement = 1
         step = step + 1
-        if step > self.sequence_limit then
-            step = 1
+        while step > self:get_param("limit") do
+            step = step - self:get_param("limit")
         end
-    elseif self.direction == 2 then
+    elseif self:get_param("direction") == 2 then
         movement = -1
         step = step - 1
-        if step < 1 then
-            step = self.sequence_limit
+        while step < 1 do
+            step = step + self:get_param("limit")
         end
-    elseif self.direction == 3 then
+    elseif self:get_param("direction") == 3 then
         step = step + movement
-        if step > self.sequence_limit then
-            step = self.sequence_limit - 1
+        if step > self:get_param("limit") then
+            step = self:get_param("limit") - 1
             movement = -1
-        elseif step < 1 then
+        end
+        if step < 1 then
             step = 2
             movement = 1
         end
-    elseif self.direction == 4 then
-        step = math.random(1, self.sequence_limit)
+    elseif self:get_param("direction") == 4 then
+        step = math.random(1, self:get_param("limit"))
     end
     return step, movement
 end
@@ -96,7 +134,6 @@ function Sequence:update()
     end
 
     -- turn off prevoius notes
-
     for _, note_data in ipairs(self.notes_on) do
         local instrument = note_data[1]
         local note = note_data[2]
@@ -151,7 +188,7 @@ function Sequence:toggle_note(note_index)
 end
 
 function Sequence:clear_all()
-    for i = 1, self.sequence_limit do
+    for i = 1, self:get_param("limit") do
         for j = 1, self.note_limit do
             self.matrix[i][j] = 0
         end

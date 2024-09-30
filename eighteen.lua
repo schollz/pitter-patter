@@ -17,7 +17,7 @@ engine.name = "MxSamplez"
 sequencers = {}
 
 function init()
-
+    params_main()
     for i = 1, 4 do
         sequencers[i] = Sequence:new({
             id = i
@@ -97,7 +97,7 @@ function redraw()
     end
 
     screen.move(5, 5)
-    screen.text(sequencers[1].direction)
+    screen.text(sequencers[1]:get_param("direction"))
 
     screen.update()
 end
@@ -114,5 +114,101 @@ function table.reverse(t)
     local len = #t
     for i = len - 1, 1, -1 do
         t[len] = table.remove(t, i)
+    end
+end
+
+function params_main()
+    local params_menu = {{
+        id = "sequence",
+        name = "sequence",
+        min = 1,
+        max = 4,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+             return string.format("%d", param:get())
+        end
+    }, {
+        id = "record",
+        name = "record",
+        min = 0,
+        max = 1,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            return param:get() == 0 and "off" or "recording"
+        end
+    }, {
+        id = "play",
+        name = "play",
+        min = 0,
+        max = 1,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param))
+            return param:get()== 0 and "off" or "playing"
+        end
+    }}
+    for _, pram in ipairs(params_menu) do
+        params:add{
+            type = "control",
+            id = "main" .. pram.id,
+            name = pram.name,
+            controlspec = controlspec.new(pram.min, pram.max, pram.exp and "exp" or "lin", pram.div, pram.default,
+                pram.unit or "", pram.div / (pram.max - pram.min)),
+            formatter = pram.formatter
+        }
+        if pram.hide then
+            params:hide(pram.id)
+        end
+        -- params:set_action(pram.id, function(v)
+        --     engine.main_set(pram.id, pram.fn ~= nil and pram.fn(v) or v)
+        -- end)
+    end
+end
+
+function params_action()
+    params.action_write = function(filename, name)
+        print("[params.action_write]", filename, name)
+        local data = {
+            -- pattern_current = pattern_current,
+        }
+        filename = filename .. ".json"
+        local file = io.open(filename, "w+")
+        io.output(file)
+        io.write(json.encode(data))
+        io.close(file)
+    end
+
+    params.action_read = function(filename, silent)
+        print("[params.action_read]", filename, silent)
+        -- load all the patterns
+        filename = filename .. ".json"
+        if not util.file_exists(filename) then
+            do
+                return
+            end
+        end
+        local f = io.open(filename, "rb")
+        local content = f:read("*all")
+        f:close()
+        if content == nil then
+            do
+                return
+            end
+        end
+        local data = json.decode(content)
+        if data == nil then
+            do
+                return
+            end
+        end
+        -- pattern_current = data.pattern_current
+        -- pattern_store = data.pattern_store
+        -- bass_pattern_current = data.bass_pattern_current
+        -- bass_pattern_store = data.bass_pattern_store
     end
 end
