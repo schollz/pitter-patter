@@ -36,7 +36,7 @@ function Sequence:init()
     self.matrix = matrix
     self.notes_to_ghost = {}
     self.instrument = "marimba_white"
-    self.direction = "pingpong"
+    self.direction = 3
     self.step = 1
     self.step_next = 1
     self.movement = 1
@@ -48,22 +48,26 @@ function Sequence:init()
     self.step_time_before_last = self.step_time_last
 end
 
+function Sequence:set_direction_delta(d)
+    local direction = self.direction + d
+    direction = (direction - 1) % 4 + 1
+    self.direction = direction
+end
+
 function Sequence:step_peek(step, movement)
-    if self.direction == "forward" then
+    if self.direction == 1 then
         movement = 1
         step = step + 1
         if step > self.sequence_limit then
             step = 1
         end
-    elseif self.direction == "backward" then
+    elseif self.direction == 2 then
         movement = -1
         step = step - 1
         if step < 1 then
             step = self.sequence_limit
         end
-    elseif self.direction == "random" then
-        step = math.random(1, self.sequence_limit)
-    elseif self.direction == "pingpong" then
+    elseif self.direction == 3 then
         step = step + movement
         if step > self.sequence_limit then
             step = self.sequence_limit - 1
@@ -72,6 +76,8 @@ function Sequence:step_peek(step, movement)
             step = 2
             movement = 1
         end
+    elseif self.direction == 4 then
+        step = math.random(1, self.sequence_limit)
     end
     return step, movement
 end

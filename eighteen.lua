@@ -1,11 +1,13 @@
--- lightsout v0.0.0
+-- eighteen v0.0.0
 --
 --
--- llllllll.co/t/lightsout
+-- llllllll.co/t/eighteen
 --
 --
 --
 --    ▼ instructions below ▼
+-- 
+-- 
 GridLib = include("eighteen/lib/ggrid")
 Sequence = include("eighteen/lib/sequence")
 lattice = require("lattice")
@@ -55,6 +57,8 @@ end
 function enc(k, d)
     if k == 3 then
         sequencers[1].note_offset = sequencers[1].note_offset + d
+    elseif k == 1 then
+        sequencers[1]:set_direction_delta(d)
     end
 end
 
@@ -91,6 +95,9 @@ function redraw()
             end
         end
     end
+
+    screen.move(5, 5)
+    screen.text(sequencers[1].direction)
 
     screen.update()
 end
