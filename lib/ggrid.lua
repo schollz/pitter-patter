@@ -68,12 +68,14 @@ function GGrid:key_press(row, col, on)
     end
     if on and row == self.height and col < self.width - 1 then
         -- toggle sequence from keyboard
-        self.sequence:toggle_note(col)
+        self.sequencer:toggle_note(col)
     elseif on and row < self.height then
         -- toggle specific position
-        local step_index = col + math.floor((self.sequence.step - 1) / 16) * 16
-        self.sequence:toggle_pos(step_index, row)
-
+        print(row,col)
+        local step_index = col + math.floor((self.sequencer.step - 1) / 16) * 16
+        self.sequencer:toggle_pos(step_index, row)
+    elseif on and row == self.height and col == self.width then
+        self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7)/7)*7
     end
 end
 
@@ -108,7 +110,7 @@ function GGrid:get_visual()
         -- show current step
         for i = 1, self.height - 1 do
             local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
-            v = v + 5
+            v = v + 2
             if v > 15 then
                 v = 15
             end

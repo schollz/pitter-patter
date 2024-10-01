@@ -16,8 +16,8 @@ end
 
 function Sequence:init()
     self.sequence_max = 16 * 4 -- 16 steps, 4 measures
-    self.note_max = 7 * 4 + 1 -- 4 octaves
-    self.scale_full = MusicUtil.generate_scale_of_length(36, 1, self.note_max)
+    self.note_max = 7 * 5 -- 4 octaves
+    self.scale_full = MusicUtil.generate_scale_of_length(24, 1, self.note_max)
     local matrix = {}
     for i = 1, self.sequence_max do
         matrix[i] = {}
@@ -35,15 +35,16 @@ function Sequence:init()
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "marimba_white"
+    self.instrument = "music_box"
     self.step = 1
     self.step_next = 1
     self.movement = 1
     self.note_limit = self.note_max
-    self.note_offset = 0
+    self.note_offset = 14
     self.notes_on = {}
     self.step_time_last = clock.get_beats()
     self.step_time_before_last = self.step_time_last
+    self.note_to_play = {}
 
     -- setup parameters
     local params_menu = {{
@@ -65,7 +66,7 @@ function Sequence:init()
         max = self.sequence_max,
         exp = false,
         div = 1,
-        default = 8,
+        default = 16,
         formatter = function(param)
             return math.floor(param:get()) .. " steps"
         end
@@ -138,17 +139,20 @@ function Sequence:update()
         local instrument = note_data[1]
         local note = note_data[2]
         print("note_off", instrument, note)
-        engine.mx_note_off(instrument, note)
+        -- engine.mx_note_off(instrument, note)
     end
 
     -- emit those notes
     self.notes_on = {}
     for i, note in ipairs(notes) do
-        table.insert(self.notes_on, {self.instrument, note})
-        print("note_on", self.instrument, note)
-        local velocity = 60
-        engine.mx_note_on(_path.code .. "eighteen/data/" .. self.instrument, note, velocity)
+        self.note_to_play[note] = true
     end
+    for i, v in pairs(self.note_to_play) do
+        if v then
+            self:note_on(i)
+        end
+    end
+    self.note_to_play = {}
 
     -- check if there are notes to ghost
     if #self.notes_to_ghost > 0 then
@@ -167,10 +171,21 @@ function Sequence:update()
     end
 end
 
+function Sequence:note_on(note_index)
+    local note = self.scale_full[note_index]
+    table.insert(self.notes_on, {self.instrument, note})
+    print("note_on", self.instrument, note)
+    local velocity = 60
+    engine.mx_note_on(_path.code .. "eighteen/data/" .. self.instrument, note, velocity)
+end
+
 function Sequence:toggle_pos(step, row)
     local note_index = (row + self.note_offset - 1) % self.note_limit + 1
     print("toggle_pos", step, row, note_index)
     self.matrix[step][note_index] = 1 - self.matrix[step][note_index]
+    -- if self.matrix[step][note_index] == 1 then
+    --     self:note_on(note_index)
+    -- end
 end
 
 function Sequence:toggle_note(note_index)
@@ -178,10 +193,13 @@ function Sequence:toggle_note(note_index)
     if (self.step_time_last - self.step_time_before_last) < (clock.get_beats() - self.step_time_last) / 2 then
         step = self.step_next
     end
+    step = self.step_next
     local note_index = (note_index + self.note_offset - 1) % self.note_limit + 1
     print("note_index", note_index, "step", step)
     if self.matrix[step][note_index] == 0 then
         self.matrix[step][note_index] = 1
+        -- self:note_on(note_index)
+        self.note_to_play[note_index] = true
     else
         self.matrix[step][note_index] = 0
     end

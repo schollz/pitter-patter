@@ -1,4 +1,4 @@
--- eighteen v0.0.0
+-- eighteen v0.0.1
 --
 --
 -- llllllll.co/t/eighteen
@@ -37,7 +37,6 @@ function init()
     sequencer:new_pattern({
         action = function(t)
             sequencers[1]:update()
-            redraw()
         end,
         division = 1 / 8
     })
@@ -148,7 +147,7 @@ function params_main()
         exp = false,
         div = 1,
         default = 1,
-        formatter = function(param))
+        formatter = function(param)
             return param:get()== 0 and "off" or "playing"
         end
     }}
