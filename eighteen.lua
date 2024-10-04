@@ -38,7 +38,7 @@ function init()
         action = function(t)
             sequencers[1]:update()
         end,
-        division = 1 / 8
+        division = 1 / 16
     })
     clock.run(function()
         clock.sleep(0.1)
@@ -126,7 +126,7 @@ function params_main()
         div = 1,
         default = 1,
         formatter = function(param)
-             return string.format("%d", param:get())
+            return string.format("%d", param:get())
         end
     }, {
         id = "record",
@@ -148,7 +148,7 @@ function params_main()
         div = 1,
         default = 1,
         formatter = function(param)
-            return param:get()== 0 and "off" or "playing"
+            return param:get() == 0 and "off" or "playing"
         end
     }}
     for _, pram in ipairs(params_menu) do

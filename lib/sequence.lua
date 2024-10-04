@@ -28,14 +28,14 @@ function Sequence:init()
     -- -- add random notes to the matrix
     -- for i = 1, self.sequence_max do
     --     for j = 1, self.note_max do
-    --         if math.random() > 0.8 then
+    --         if math.random() > 0.9 then
     --             matrix[i][j] = 1
     --         end
     --     end
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "music_box"
+    self.instrument = "toypiano_barbie"
     self.step = 1
     self.step_next = 1
     self.movement = 1
@@ -176,7 +176,7 @@ function Sequence:note_on(note_index)
     table.insert(self.notes_on, {self.instrument, note})
     print("note_on", self.instrument, note)
     local velocity = 60
-    engine.mx_note_on(_path.code .. "eighteen/data/" .. self.instrument, note, velocity)
+    engine.mx_note_on(_path.audio .. "mx.samples/" .. self.instrument, note, velocity)
 end
 
 function Sequence:toggle_pos(step, row)
