@@ -35,7 +35,7 @@ function Sequence:init()
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "toypiano_barbie"
+    self.instrument = "steinway_model_b"
     self.step = 1
     self.step_next = 1
     self.movement = 1
@@ -128,8 +128,12 @@ function Sequence:update()
     self.step_next, _ = self:step_peek(self.step, self.movement)
     -- check which notes are activated
     local notes = {}
+    local step_last = self.step-1
+    if step_last < 1 then
+        step_last = self:get_param("limit")
+    end
     for i = 1, self.note_limit do
-        if self.matrix[self.step][i] > 0 then
+        if self.matrix[step_last][i] > 0 then
             table.insert(notes, i)
         end
     end
@@ -190,16 +194,10 @@ end
 
 function Sequence:toggle_note(note_index)
     local step = self.step
-    if (self.step_time_last - self.step_time_before_last) < (clock.get_beats() - self.step_time_last) / 2 then
-        step = self.step_next
-    end
-    step = self.step_next
     local note_index = (note_index + self.note_offset - 1) % self.note_limit + 1
     print("note_index", note_index, "step", step)
     if self.matrix[step][note_index] == 0 then
         self.matrix[step][note_index] = 1
-        -- self:note_on(note_index)
-        self.note_to_play[note_index] = true
     else
         self.matrix[step][note_index] = 0
     end
