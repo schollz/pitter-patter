@@ -15,7 +15,7 @@ lattice = require("lattice")
 engine.name = "MxSamplez"
 
 sequencers = {}
-
+playing = true
 function init()
     params_main()
     for i = 1, 4 do
@@ -36,7 +36,9 @@ function init()
 
     sequencer:new_pattern({
         action = function(t)
+            if playing then 
             sequencers[1]:update()
+        end
         end,
         division = 1 / 16
     })
@@ -58,15 +60,15 @@ function enc(k, d)
         sequencers[1].note_offset = sequencers[1].note_offset + d
     elseif k == 1 then
         sequencers[1]:set_direction_delta(d)
+    elseif k==2 and math.abs(d)<2 then 
+            params:set("sequence1_direction",d>0 and 1 or 2)
+            sequencers[1]:update()
     end
 end
 
 function key(k, z)
     if z == 1 and k == 3 then
-        local row = 2
-        local col = 3
-        local step_index = col + math.floor((sequencers[1].step - 1) / 16) * 16
-        sequencers[1]:toggle_pos(step_index, row)
+        playing = not playing
     elseif z == 1 and k == 2 then
         sequencers[1]:update()
 

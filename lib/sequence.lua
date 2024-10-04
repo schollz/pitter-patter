@@ -35,7 +35,7 @@ function Sequence:init()
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "toypiano_barbie"
+    self.instrument = "tatak_piano"
     self.step = 1
     self.step_last = 1
     self.step_next = 1
@@ -181,7 +181,7 @@ end
 function Sequence:note_on(note_index)
     local note = self.scale_full[note_index]
     table.insert(self.notes_on, {self.instrument, note})
-    local velocity = 60
+    local velocity = math.random(40,80)
     engine.mx_note_on(self:instrument_folder(), note, velocity)
 end
 
