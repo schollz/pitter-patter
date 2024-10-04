@@ -84,6 +84,12 @@ MxSamplez {
 		ins.at(folder).setParam(key,value);
 	}
 
+	setGlobal {
+		arg key,value;
+		["set",key,value].postln;
+		synFx.set(key.asSymbol,value.asFloat);
+	}
+
 	noteOn {
 		arg folder,note,velocity;
 		if (ins.at(folder).isNil,{

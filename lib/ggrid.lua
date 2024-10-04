@@ -102,7 +102,7 @@ function GGrid:get_visual()
             for j = 1, self.height - 1 do
                 local note_index = (j + self.sequencer.note_offset - 1) % self.sequencer.note_limit + 1
                 if self.sequencer.matrix[i + step_offset][note_index] > 0 then
-                    self.visual[j][i] = 5
+                    self.visual[j][i] = 12-(self.sequencer.scale_full[note_index] % 12) + 2
                 end
             end
         end
@@ -110,11 +110,16 @@ function GGrid:get_visual()
         -- show current step
         for i = 1, self.height - 1 do
             local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
-            v = v + 2
+            v = v + 4
             if v > 15 then
                 v = 15
             end
             self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
+        end
+
+        -- show keyboard
+        for col = 1, self.width - 1 do
+            self.visual[self.height][col] = 12 - (self.sequencer:get_note_from_index(col) % 12)+2
         end
 
     end

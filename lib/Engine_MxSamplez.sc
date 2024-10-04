@@ -50,6 +50,10 @@ Engine_MxSamplez : CroneEngine {
 			mx.setSustain(msg[1].asString,msg[2]==1);
 		});
 
+		this.addCommand("mx_global", "ss", { arg msg;
+			mx.setGlobal(msg[1].asString,msg[2]);
+		});
+
 		this.addCommand("MxSamplez_sustenuto", "si", { arg msg;
 			mx.setSustenuto(msg[1].asString,msg[2]==1);
 		});

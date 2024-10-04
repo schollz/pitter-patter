@@ -16,7 +16,7 @@ end
 
 function Sequence:init()
     self.sequence_max = 16 * 4 -- 16 steps, 4 measures
-    self.note_max = 7 * 5 -- 4 octaves
+    self.note_max = 7 * 6 -- 4 octaves
     self.scale_full = MusicUtil.generate_scale_of_length(24, 1, self.note_max)
     local matrix = {}
     for i = 1, self.sequence_max do
@@ -37,6 +37,7 @@ function Sequence:init()
     self.notes_to_ghost = {}
     self.instrument = "steinway_model_b"
     self.step = 1
+    self.step_last = 1
     self.step_next = 1
     self.movement = 1
     self.note_limit = self.note_max
@@ -86,6 +87,12 @@ function Sequence:init()
             params:hide(pram.id)
         end
     end
+
+    engine.mx_global("delayBeats",1)
+    engine.mx_global("secondsPerBeat",clock.get_beat_sec())
+    engine.mx_global("delayFeedback",0.05)
+    engine.mx_set(_path.audio .. "mx.samples/" .. self.instrument,"delaysend",0.2)
+
 end
 
 function Sequence:get_param(v)
@@ -124,16 +131,13 @@ end
 function Sequence:update()
     self.step_time_before_last = self.step_time_last
     self.step_time_last = clock.get_beats()
+    self.step_last = self.step
     self.step, self.movement = self:step_peek(self.step, self.movement)
-    self.step_next, _ = self:step_peek(self.step, self.movement)
+    -- self.step_next, _ = self:step_peek(self.step, self.movement)
     -- check which notes are activated
     local notes = {}
-    local step_last = self.step-1
-    if step_last < 1 then
-        step_last = self:get_param("limit")
-    end
     for i = 1, self.note_limit do
-        if self.matrix[step_last][i] > 0 then
+        if self.matrix[self.step_last][i] > 0 then
             table.insert(notes, i)
         end
     end
@@ -142,8 +146,7 @@ function Sequence:update()
     for _, note_data in ipairs(self.notes_on) do
         local instrument = note_data[1]
         local note = note_data[2]
-        print("note_off", instrument, note)
-        -- engine.mx_note_off(instrument, note)
+        engine.mx_note_off(self:instrument_folder(), note)
     end
 
     -- emit those notes
@@ -178,29 +181,35 @@ end
 function Sequence:note_on(note_index)
     local note = self.scale_full[note_index]
     table.insert(self.notes_on, {self.instrument, note})
-    print("note_on", self.instrument, note)
     local velocity = 60
-    engine.mx_note_on(_path.audio .. "mx.samples/" .. self.instrument, note, velocity)
+    engine.mx_note_on(self:instrument_folder(), note, velocity)
+end
+
+function Sequence:instrument_folder()
+    return _path.audio .. "mx.samples/" .. self.instrument
 end
 
 function Sequence:toggle_pos(step, row)
     local note_index = (row + self.note_offset - 1) % self.note_limit + 1
-    print("toggle_pos", step, row, note_index)
     self.matrix[step][note_index] = 1 - self.matrix[step][note_index]
-    -- if self.matrix[step][note_index] == 1 then
-    --     self:note_on(note_index)
-    -- end
 end
 
 function Sequence:toggle_note(note_index)
     local step = self.step
-    local note_index = (note_index + self.note_offset - 1) % self.note_limit + 1
-    print("note_index", note_index, "step", step)
+    local note_index = self:get_note_index(note_index)
     if self.matrix[step][note_index] == 0 then
         self.matrix[step][note_index] = 1
     else
         self.matrix[step][note_index] = 0
     end
+end
+
+function Sequence:get_note_index(note_index)
+    return (note_index + self.note_offset - 1) % self.note_limit + 1
+end
+
+function Sequence:get_note_from_index(note_index)
+    return self.scale_full[self:get_note_index(note_index)]
 end
 
 function Sequence:clear_all()
