@@ -35,7 +35,7 @@ function Sequence:init()
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "steinway_model_b"
+    self.instrument = "toypiano_barbie"
     self.step = 1
     self.step_last = 1
     self.step_next = 1
