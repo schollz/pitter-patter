@@ -3,13 +3,9 @@ local MusicUtil = require "musicutil"
 local Sequence = {}
 
 function Sequence:new(args)
-    local m = setmetatable({}, {
-        __index = Sequence
-    })
+    local m = setmetatable({}, {__index = Sequence})
     local args = args == nil and {} or args
-    for k, v in pairs(args) do
-        m[k] = v
-    end
+    for k, v in pairs(args) do m[k] = v end
     m:init()
     return m
 end
@@ -21,9 +17,7 @@ function Sequence:init()
     local matrix = {}
     for i = 1, self.sequence_max do
         matrix[i] = {}
-        for j = 1, self.note_max do
-            matrix[i][j] = 0
-        end
+        for j = 1, self.note_max do matrix[i][j] = 0 end
     end
     -- -- add random notes to the matrix
     -- for i = 1, self.sequence_max do
@@ -49,7 +43,8 @@ function Sequence:init()
     self.midi_device = midi.connect(1)
     for i = 1, #midi.vports do
         local long_name = midi.vports[i].name
-        local short_name = string.len(long_name) > 15 and util.acronym(long_name) or long_name
+        local short_name = string.len(long_name) > 15 and
+                               util.acronym(long_name) or long_name
         table.insert(self.midi_devices, i .. ": " .. short_name)
     end
 
@@ -58,111 +53,115 @@ function Sequence:init()
     local instrument_options = {"toy piano"}
     local files = util.scandir(_path.audio .. "mx.samples")
     for i, folder in ipairs(files) do
--- remove trailing /
+        -- remove trailing /
         folder = string.sub(folder, 1, -2)
-            table.insert(instrument_folders, folder)
-            -- replace underscores with spaces
-            local name = string.gsub(folder, "_", " ")
-            table.insert(instrument_options, name)
+        table.insert(instrument_folders, folder)
+        -- replace underscores with spaces
+        local name = string.gsub(folder, "_", " ")
+        table.insert(instrument_options, name)
     end
     tab.print(instrument_folders)
 
     -- setup parameters
     local params_menu = {
         {
-id="instrument",
-name="instrument",
-min=1,
-max=#instrument_options,
-exp=false,
-div=1,
-default=1,
-formatter=function(param)
-    return instrument_options[param:get()]
-end,
-action=function(v)
-   if v==1 then 
-    self.instrument = _path.code.."eighteen/data"
-   else 
-    self.instrument = _path.audio.."mx.samples/"..instrument_folders[v-1]
-   end
-end
-},
-            
+            id = "instrument",
+            name = "instrument",
+            min = 1,
+            max = #instrument_options,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                return instrument_options[param:get()]
+            end,
+            action = function(v)
+                if v == 1 then
+                    self.instrument = _path.code .. "eighteen/data"
+                else
+                    self.instrument = _path.audio .. "mx.samples/" ..
+                                          instrument_folders[v - 1]
+                end
+            end
+        }, {
+            id = "direction",
+            name = "direction",
+            min = 1,
+            max = 4,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                local directions = {
+                    "forward", "backward", "ping pong", "random"
+                }
+                return directions[param:get()]
+            end
+        }, {
+            id = "limit",
+            name = "limit",
+            min = 2,
+            max = self.sequence_max,
+            exp = false,
+            div = 1,
+            default = 16,
+            formatter = function(param)
+                return math.floor(param:get()) .. " steps"
+            end
+        }, -- midi parameters
         {
-        id = "direction",
-        name = "direction",
-        min = 1,
-        max = 4,
-        exp = false,
-        div = 1,
-        default = 1,
-        formatter = function(param)
-            local directions = {"forward", "backward", "ping pong", "random"}
-            return directions[param:get()]
-        end
-    }, {
-        id = "limit",
-        name = "limit",
-        min = 2,
-        max = self.sequence_max,
-        exp = false,
-        div = 1,
-        default = 16,
-        formatter = function(param)
-            return math.floor(param:get()) .. " steps"
-        end
-    }, -- midi parameters
-    {
-        id = "output",
-        name = "output",
-        min = 1,
-        max = 5,
-        exp = false,
-        div = 1,
-        default = 1,
-        formatter = function(param)
-            local outputs = {"none", "midi", "crow out 1+2", "crow ii JF", "crow ii 301"}
-            return outputs[param:get()]
-        end,
-        action = function(value)
-            if value == 3 then
-                crow.output[2].action = "{to(5,0),to(0,0.25)}"
-            elseif value == 4 or value == 5 then
-                crow.ii.pullup(true)
-                crow.ii.jf.mode(1)
+            id = "output",
+            name = "output",
+            min = 1,
+            max = 5,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                local outputs = {
+                    "none", "midi", "crow out 1+2", "crow ii JF", "crow ii 301"
+                }
+                return outputs[param:get()]
+            end,
+            action = function(value)
+                if value == 3 then
+                    crow.output[2].action = "{to(5,0),to(0,0.25)}"
+                elseif value == 4 or value == 5 then
+                    crow.ii.pullup(true)
+                    crow.ii.jf.mode(1)
+                end
             end
-        end
-    }, {
-        id = "midi_out_device",
-        name = "midi out device",
-        min = 1,
-        max = #self.midi_devices,
-        exp = false,
-        div = 1,
-        default = 1,
-        formatter = function(param)
-            return self.midi_devices[param:get()]
-        end,
-        action = function(value)
-            local device = midi.connect(value)
-            if device then
-                print("midi device connected: " .. device.name)
-                self.midi_out_device = midi.connect(value)
+        }, {
+            id = "midi_out_device",
+            name = "midi out device",
+            min = 1,
+            max = #self.midi_devices,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                return self.midi_devices[param:get()]
+            end,
+            action = function(value)
+                local device = midi.connect(value)
+                if device then
+                    print("midi device connected: " .. device.name)
+                    self.midi_out_device = midi.connect(value)
+                end
             end
-        end
-    }, {
-        id = "midi_out_channel",
-        name = "midi out channel",
-        min = 1,
-        max = 16,
-        exp = false,
-        div = 1,
-        default = 1,
-        formatter = function(param)
-            return "ch " .. math.floor(param:get())
-        end
-    }}
+        }, {
+            id = "midi_out_channel",
+            name = "midi out channel",
+            min = 1,
+            max = 16,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                return "ch " .. math.floor(param:get())
+            end
+        }
+    }
     params:add_group("SEQUENCE " .. self.id, #params_menu)
     for _, pram in ipairs(params_menu) do
         pram.id = "sequence" .. self.id .. "_" .. pram.id
@@ -170,16 +169,14 @@ end
             type = "control",
             id = pram.id,
             name = pram.name,
-            controlspec = controlspec.new(pram.min, pram.max, pram.exp and "exp" or "lin", pram.div, pram.default,
-                pram.unit or "", pram.div / (pram.max - pram.min)),
+            controlspec = controlspec.new(pram.min, pram.max,
+                                          pram.exp and "exp" or "lin", pram.div,
+                                          pram.default, pram.unit or "",
+                                          pram.div / (pram.max - pram.min)),
             formatter = pram.formatter
         }
-        if pram.action then
-            params:set_action(pram.id, pram.action)
-        end
-        if pram.hide then
-            params:hide(pram.id)
-        end
+        if pram.action then params:set_action(pram.id, pram.action) end
+        if pram.hide then params:hide(pram.id) end
     end
 
     self.instrument = _path.code .. "eighteen/data"
@@ -188,9 +185,17 @@ end
     engine.mx_global("secondsPerBeat", clock.get_beat_sec())
     engine.mx_global("delayFeedback", 0.05)
     engine.mx_set(self.instrument, "delaysend", 0.2)
-    if self.id==1 then 
-        engine.mx_note_on(self.instrument, 60, 0)
-    end
+    if self.id == 1 then engine.mx_note_on(self.instrument, 60, 0) end
+end
+
+function Sequence:marshal()
+    local data = {}
+    data.matrix = self.matrix
+    data.step = self.step
+    data.movement = self.movement
+    data.notes_to_ghost = self.notes_to_ghost
+    data.note_offset = self.note_offset
+    return data
 end
 
 function Sequence:delta_param(v, d)
@@ -215,9 +220,7 @@ function Sequence:step_peek(step, movement)
     elseif self:get_param("direction") == 2 then
         movement = -1
         step = step - 1
-        while step < 1 do
-            step = step + self:get_param("limit")
-        end
+        while step < 1 do step = step + self:get_param("limit") end
     elseif self:get_param("direction") == 3 then
         step = step + movement
         if step > self:get_param("limit") then
@@ -243,9 +246,7 @@ function Sequence:update()
     -- check which notes are activated
     local notes = {}
     for i = 1, self.note_limit do
-        if self.matrix[self.step_last][i] > 0 then
-            table.insert(notes, i)
-        end
+        if self.matrix[self.step_last][i] > 0 then table.insert(notes, i) end
     end
 
     -- turn off prevoius notes
@@ -257,20 +258,15 @@ function Sequence:update()
 
     -- emit those notes
     self.notes_on = {}
-    for i, note in ipairs(notes) do
-        self.note_to_play[note] = true
-    end
-    for i, v in pairs(self.note_to_play) do
-        if v then
-            self:note_on(i)
-        end
-    end
+    for i, note in ipairs(notes) do self.note_to_play[note] = true end
+    for i, v in pairs(self.note_to_play) do if v then self:note_on(i) end end
     self.note_to_play = {}
 
     -- check if there are notes to ghost
     if #self.notes_to_ghost > 0 then
         -- randomly choose 1 note to toggle off if it is on
-        local note_to_ghost = self.notes_to_ghost[math.random(1, #self.notes_to_ghost)]
+        local note_to_ghost = self.notes_to_ghost[math.random(1,
+                                                              #self.notes_to_ghost)]
         if self.matrix[note_to_ghost[1]][note_to_ghost[2]] > 0 then
             self.matrix[note_to_ghost[1]][note_to_ghost[2]] = 0
             -- remove it from the notes_to_ghost table
@@ -291,6 +287,12 @@ function Sequence:note_on(note_index)
     engine.mx_note_on(self.instrument, note, velocity)
 end
 
+function Sequence:clear()
+    for i = 1, self.sequence_max do
+        self.matrix[i] = {}
+        for j = 1, self.note_max do self.matrix[i][j] = 0 end
+    end
+end
 
 function Sequence:toggle_from_note(note)
     local closest_index = 1
@@ -303,9 +305,10 @@ function Sequence:toggle_from_note(note)
         end
     end
     print(self.step, closest_index)
-    self.matrix[self.step][closest_index] = 1 - self.matrix[self.step][closest_index]
+    self.matrix[self.step][closest_index] = 1 -
+                                                self.matrix[self.step][closest_index]
     -- find the note offset that is closest to that index
-    self.note_offset = math.floor((closest_index)/7)*7
+    self.note_offset = math.floor((closest_index) / 7) * 7
     print(self.note_offset)
 end
 
@@ -334,9 +337,7 @@ end
 
 function Sequence:clear_all()
     for i = 1, self:get_param("limit") do
-        for j = 1, self.note_limit do
-            self.matrix[i][j] = 0
-        end
+        for j = 1, self.note_limit do self.matrix[i][j] = 0 end
     end
 end
 
