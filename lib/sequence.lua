@@ -39,7 +39,7 @@ function Sequence:init()
   self.step_next = 1
   self.movement = 1
   self.note_limit = self.note_max
-  self.note_offset = 14
+  self.note_offset = 21
   self.notes_on = {}
   self.step_time_last = clock.get_beats()
   self.step_time_before_last = self.step_time_last
