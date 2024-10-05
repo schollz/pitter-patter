@@ -20,8 +20,11 @@
 GridLib = include("pitter-patter/lib/ggrid")
 Sequence = include("pitter-patter/lib/sequence")
 lattice = require("lattice")
+nb = include("lib/nb/lib/nb")
 local musicutil = require("musicutil")
+
 engine.name = "MxSamplez"
+
 
 sequencers = {}
 
@@ -31,6 +34,7 @@ local divisions = {4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32}
 local divisions_strings = {"4 beats", "2 beats", "1 beat", "1/2", "1/4", "1/8", "1/16", "1/32"}
 
 function init()
+  nb:init() 
 
   params_main()
   for i = 1, 4 do sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings}) end

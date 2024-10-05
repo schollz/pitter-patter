@@ -56,7 +56,7 @@ function Sequence:init()
 
   -- find all the folders in the mx.samples folder
   local instrument_folders = {}
-  local instrument_options = {"toy piano"}
+  local instrument_options = {"pitter patter"}
   local files = util.scandir(_path.audio .. "mx.samples")
   for i, folder in ipairs(files) do
     -- remove trailing /
@@ -331,9 +331,9 @@ function Sequence:note_on(note_index)
   if self.velocity_i > #self:get_velocity_profile() then self.velocity_i = 1 end
   local velocity
   if self.velocity_profiles[self:get_param("velocity")][self.velocity_i] == 1 then
-    velocity = math.random(80, 120)
+    velocity = math.random(80, 125)
   else
-    velocity = math.random(30, 60)
+    velocity = math.random(20, 60)
   end
   print("note on", note, velocity)
   engine.mx_note_on(self.instrument, note, velocity)
