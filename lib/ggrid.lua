@@ -54,8 +54,8 @@ function GGrid:new(args)
   end
   print("grid columns: " .. m.g.cols)
 
-  m.width = m.cols
-  m.height = m.rows
+  m.width = m.g.cols
+  m.height = m.g.rows
   if m.width == nil then m.width = 16 end
   if m.height == nil then m.height = 8 end
   m.scroll_y = 0
