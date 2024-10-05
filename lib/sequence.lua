@@ -35,7 +35,6 @@ function Sequence:init()
     -- end
     self.matrix = matrix
     self.notes_to_ghost = {}
-    self.instrument = "tatak_piano"
     self.step = 1
     self.step_last = 1
     self.step_next = 1
@@ -54,8 +53,43 @@ function Sequence:init()
         table.insert(self.midi_devices, i .. ": " .. short_name)
     end
 
+    -- find all the folders in the mx.samples folder
+    local instrument_folders = {}
+    local instrument_options = {"toy piano"}
+    local files = util.scandir(_path.audio .. "mx.samples")
+    for i, folder in ipairs(files) do
+-- remove trailing /
+        folder = string.sub(folder, 1, -2)
+            table.insert(instrument_folders, folder)
+            -- replace underscores with spaces
+            local name = string.gsub(folder, "_", " ")
+            table.insert(instrument_options, name)
+    end
+    tab.print(instrument_folders)
+
     -- setup parameters
-    local params_menu = {{
+    local params_menu = {
+        {
+id="instrument",
+name="instrument",
+min=1,
+max=#instrument_options,
+exp=false,
+div=1,
+default=1,
+formatter=function(param)
+    return instrument_options[param:get()]
+end,
+action=function(v)
+   if v==1 then 
+    self.instrument = _path.code.."eighteen/data"
+   else 
+    self.instrument = _path.audio.."mx.samples/"..instrument_folders[v-1]
+   end
+end
+},
+            
+        {
         id = "direction",
         name = "direction",
         min = 1,
@@ -148,11 +182,15 @@ function Sequence:init()
         end
     end
 
+    self.instrument = _path.code .. "eighteen/data"
+
     engine.mx_global("delayBeats", 1)
     engine.mx_global("secondsPerBeat", clock.get_beat_sec())
     engine.mx_global("delayFeedback", 0.05)
-    engine.mx_set(_path.audio .. "mx.samples/" .. self.instrument, "delaysend", 0.2)
-
+    engine.mx_set(self.instrument, "delaysend", 0.2)
+    if self.id==1 then 
+        engine.mx_note_on(self.instrument, 60, 0)
+    end
 end
 
 function Sequence:delta_param(v, d)
@@ -214,7 +252,7 @@ function Sequence:update()
     for _, note_data in ipairs(self.notes_on) do
         local instrument = note_data[1]
         local note = note_data[2]
-        engine.mx_note_off(self:instrument_folder(), note)
+        engine.mx_note_off(self.instrument, note)
     end
 
     -- emit those notes
@@ -250,11 +288,25 @@ function Sequence:note_on(note_index)
     local note = self.scale_full[note_index]
     table.insert(self.notes_on, {self.instrument, note})
     local velocity = math.random(40, 80)
-    engine.mx_note_on(self:instrument_folder(), note, velocity)
+    engine.mx_note_on(self.instrument, note, velocity)
 end
 
-function Sequence:instrument_folder()
-    return _path.audio .. "mx.samples/" .. self.instrument
+
+function Sequence:toggle_from_note(note)
+    local closest_index = 1
+    local closest_distance = 1000
+    for i, v in ipairs(self.scale_full) do
+        local distance = math.abs(v - note)
+        if distance < closest_distance then
+            closest_distance = distance
+            closest_index = i
+        end
+    end
+    print(self.step, closest_index)
+    self.matrix[self.step][closest_index] = 1 - self.matrix[self.step][closest_index]
+    -- find the note offset that is closest to that index
+    self.note_offset = math.floor((closest_index)/7)*7
+    print(self.note_offset)
 end
 
 function Sequence:toggle_pos(step, row)

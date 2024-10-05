@@ -106,9 +106,9 @@ function redraw()
     end
     screen.level(10)
     screen.move(0, 5)
-    screen.text(params:string("main_play") .. " " .. sequencers[1]:get_param_str("direction"))
+    screen.text(sequencers[1]:get_param_str("instrument"))
     screen.move(0, 5 + 8)
-    screen.text("direction: ")
+    screen.text(params:string("main_play") .. " " .. sequencers[1]:get_param_str("direction"))
     screen.update()
 end
 
@@ -136,6 +136,7 @@ function params_main()
     end
     for j, dev in pairs(midi.devices) do
         if dev.port ~= nil then
+            print("midi device: ", dev.name)
             table.insert(midi_devices, dev.name)
         end
     end
@@ -212,7 +213,50 @@ function params_main()
         --     engine.main_set(pram.id, pram.fn ~= nil and pram.fn(v) or v)
         -- end)
     end
-end
+    for j, dev in pairs(midi.devices) do
+        if dev.port ~= nil then
+            local conn = midi.connect(dev.port)
+            print("connecting to midi device: ", dev.name)
+            conn.event = function(data)
+                local d = midi.to_msg(data)
+                -- check if clock
+                if d.type == "clock" then
+                    -- print("clock")
+                    return
+                end
+                -- tab.print(d)
+                -- print(dev.name,dev.ch,midi_devices[params:get("main_midi_input")],params:get("main_midi_channel"))
+                -- visualize ccs
+                -- if d.cc~=nil and d.val~=nil then
+                --   if d.cc>0 and d.val>0 then
+                --     print("cc",d.cc,d.val)
+                --   end
+                -- end
+                if params:get("main_midi_input") == 2 then
+                    do
+                        return
+                    end
+                end
+                if dev.name ~= midi_devices[params:get("main_midi_input")] and params:get("main_midi_input") > 2 then
+                    do
+                        return
+                    end
+                end
+                if d.ch~=nil and d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") > 2 then
+                    do
+                        return
+                    end
+                end
+                if d.type == "note_on" then
+                    print("note_on", dev.name, d.note, d.vel)
+                    sequencers[1]:toggle_from_note(d.note)
+                elseif d.type == "note_off" then
+                    print("note_off", dev.name, d.note)
+                end
+            end
+        end
+    end
+end 
 
 function params_action()
     params.action_write = function(filename, name)
@@ -254,42 +298,5 @@ function params_action()
         -- pattern_store = data.pattern_store
         -- bass_pattern_current = data.bass_pattern_current
         -- bass_pattern_store = data.bass_pattern_store
-    end
-end
-
-function setup_midi_input()
-    for j, dev in pairs(midi.devices) do
-        if dev.port ~= nil then
-            local conn = midi.connect(dev.port)
-            conn.event = function(data)
-                local d = midi.to_msg(data)
-                -- visualize ccs
-                -- if d.cc~=nil and d.val~=nil then
-                --   if d.cc>0 and d.val>0 then
-                --     print("cc",d.cc,d.val)
-                --   end
-                -- end
-                if params:get("main_midi_input") == 2 then
-                    do
-                        return
-                    end
-                end
-                if dev.name ~= midi_devices[params:get("main_midi_input")] and params:get("main_midi_input") ~= 2 then
-                    do
-                        return
-                    end
-                end
-                if d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") > 2 then
-                    do
-                        return
-                    end
-                end
-                if d.type == "note_on" then
-                    print("note_on", dev.name, d.note, d.vel)
-                elseif d.type == "note_off" then
-                    print("note_off", dev.name, d.note)
-                end
-            end
-        end
     end
 end
