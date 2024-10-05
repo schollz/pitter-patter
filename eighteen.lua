@@ -39,8 +39,6 @@ function init()
   print("sequencer 3 id: ", sequencers[3].id)
   grid_ = GridLib:new()
 
-  -- set default sequencer
-  grid_.sequencer = sequencers[params:get("main_sequence")]
 
   -- bang params
   params:bang()
@@ -204,7 +202,11 @@ function params_main()
       default=1,
       formatter=function(param)
         return string.format("%d", param:get())
-      end
+      end,
+      action=function(v)
+        print("sequence", v)
+        grid_.sequencer = sequencers[v]
+    end
     }, {
       id="record",
       name="record",
@@ -263,6 +265,9 @@ function params_main()
     if pram.hide then
       params:hide(pram.id)
     end
+    if pram.action then 
+        params:set_action("main_" .. pram.id, pram.action)
+        end
     -- params:set_action(pram.id, function(v)
     --     engine.main_set(pram.id, pram.fn ~= nil and pram.fn(v) or v)
     -- end)
