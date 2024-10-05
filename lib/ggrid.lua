@@ -63,17 +63,11 @@ function GGrid:new(args)
   -- setup visual
   m.beat = 0
   m.visual = {}
-  m.lightsout = {}
-  m.playing = {}
-  m.grid_width = 16
+  m.grid_width = m.width
   for i = 1, 8 do
-    m.lightsout[i] = {}
-    m.playing[i] = {}
     m.visual[i] = {}
     for j = 1, m.grid_width do
       m.visual[i][j] = 0
-      m.lightsout[i][j] = 0
-      m.playing[i][j] = 0
     end
   end
 
