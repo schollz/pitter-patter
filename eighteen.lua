@@ -16,8 +16,8 @@ engine.name = "MxSamplez"
 
 sequencers = {}
 
-debounce_show_grid = 0
 debounce_show_grid_time = 30
+debounce_show_grid = debounce_show_grid_time
 
 function init()
     params_main()
@@ -39,7 +39,7 @@ function init()
 
     sequencer:new_pattern({
         action = function(t)
-            if params:get("mainplay") == 1 then
+            if params:get("main_play") == 1 then
                 sequencers[1]:update()
             end
         end,
@@ -73,7 +73,7 @@ end
 
 function key(k, z)
     if z == 1 and k == 3 then
-        params:set("mainplay", params:get("mainplay") == 0 and 1 or 0)
+        params:set("main_play", params:get("main_play") == 0 and 1 or 0)
     elseif z == 1 and k == 2 then
         sequencers[1]:update()
 
@@ -106,7 +106,7 @@ function redraw()
     end
     screen.level(10)
     screen.move(0, 5)
-    screen.text(params:string("mainplay") .. " " .. sequencers[1]:get_param_str("direction"))
+    screen.text(params:string("main_play") .. " " .. sequencers[1]:get_param_str("direction"))
     screen.move(0, 5 + 8)
     screen.text("direction: ")
     screen.update()
@@ -128,6 +128,18 @@ function table.reverse(t)
 end
 
 function params_main()
+    midi_connections = {}
+    local midi_devices = {"any", "none"}
+    local midi_channels = {"all"}
+    for i = 1, 16 do
+        table.insert(midi_channels, i)
+    end
+    for j, dev in pairs(midi.devices) do
+        if dev.port ~= nil then
+            table.insert(midi_devices, dev.name)
+        end
+    end
+
     local params_menu = {{
         id = "sequence",
         name = "sequence",
@@ -161,11 +173,33 @@ function params_main()
         formatter = function(param)
             return param:get() == 0 and "stopped" or "playing"
         end
+    }, {
+        id = "midi_input",
+        name = "midi input device",
+        min = 1,
+        max = #midi_devices,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            return midi_devices[param:get()]
+        end
+    }, {
+        id = "midi_channel",
+        name = "midi channel",
+        min = 1,
+        max = 17,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            return midi_channels[param:get()]
+        end
     }}
     for _, pram in ipairs(params_menu) do
         params:add{
             type = "control",
-            id = "main" .. pram.id,
+            id = "main_" .. pram.id,
             name = pram.name,
             controlspec = controlspec.new(pram.min, pram.max, pram.exp and "exp" or "lin", pram.div, pram.default,
                 pram.unit or "", pram.div / (pram.max - pram.min)),
@@ -220,5 +254,42 @@ function params_action()
         -- pattern_store = data.pattern_store
         -- bass_pattern_current = data.bass_pattern_current
         -- bass_pattern_store = data.bass_pattern_store
+    end
+end
+
+function setup_midi_input()
+    for j, dev in pairs(midi.devices) do
+        if dev.port ~= nil then
+            local conn = midi.connect(dev.port)
+            conn.event = function(data)
+                local d = midi.to_msg(data)
+                -- visualize ccs
+                -- if d.cc~=nil and d.val~=nil then
+                --   if d.cc>0 and d.val>0 then
+                --     print("cc",d.cc,d.val)
+                --   end
+                -- end
+                if params:get("main_midi_input") == 2 then
+                    do
+                        return
+                    end
+                end
+                if dev.name ~= midi_devices[params:get("main_midi_input")] and params:get("main_midi_input") ~= 2 then
+                    do
+                        return
+                    end
+                end
+                if d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") > 2 then
+                    do
+                        return
+                    end
+                end
+                if d.type == "note_on" then
+                    print("note_on", dev.name, d.note, d.vel)
+                elseif d.type == "note_off" then
+                    print("note_off", dev.name, d.note)
+                end
+            end
+        end
     end
 end

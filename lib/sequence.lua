@@ -46,6 +46,13 @@ function Sequence:init()
     self.step_time_last = clock.get_beats()
     self.step_time_before_last = self.step_time_last
     self.note_to_play = {}
+    self.midi_devices = {}
+    self.midi_device = midi.connect(1)
+    for i = 1, #midi.vports do
+        local long_name = midi.vports[i].name
+        local short_name = string.len(long_name) > 15 and util.acronym(long_name) or long_name
+        table.insert(self.midi_devices, i .. ": " .. short_name)
+    end
 
     -- setup parameters
     local params_menu = {{
@@ -71,6 +78,56 @@ function Sequence:init()
         formatter = function(param)
             return math.floor(param:get()) .. " steps"
         end
+    }, -- midi parameters
+    {
+        id = "output",
+        name = "output",
+        min = 1,
+        max = 5,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            local outputs = {"none", "midi", "crow out 1+2", "crow ii JF", "crow ii 301"}
+            return outputs[param:get()]
+        end,
+        action = function(value)
+            if value == 3 then
+                crow.output[2].action = "{to(5,0),to(0,0.25)}"
+            elseif value == 4 or value == 5 then
+                crow.ii.pullup(true)
+                crow.ii.jf.mode(1)
+            end
+        end
+    }, {
+        id = "midi_out_device",
+        name = "midi out device",
+        min = 1,
+        max = #self.midi_devices,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            return self.midi_devices[param:get()]
+        end,
+        action = function(value)
+            local device = midi.connect(value)
+            if device then
+                print("midi device connected: " .. device.name)
+                self.midi_out_device = midi.connect(value)
+            end
+        end
+    }, {
+        id = "midi_out_channel",
+        name = "midi out channel",
+        min = 1,
+        max = 16,
+        exp = false,
+        div = 1,
+        default = 1,
+        formatter = function(param)
+            return "ch " .. math.floor(param:get())
+        end
     }}
     params:add_group("SEQUENCE " .. self.id, #params_menu)
     for _, pram in ipairs(params_menu) do
@@ -83,6 +140,9 @@ function Sequence:init()
                 pram.unit or "", pram.div / (pram.max - pram.min)),
             formatter = pram.formatter
         }
+        if pram.action then
+            params:set_action(pram.id, pram.action)
+        end
         if pram.hide then
             params:hide(pram.id)
         end
