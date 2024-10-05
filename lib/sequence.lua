@@ -88,15 +88,23 @@ function Sequence:init()
         end
     end
 
-    engine.mx_global("delayBeats",1)
-    engine.mx_global("secondsPerBeat",clock.get_beat_sec())
-    engine.mx_global("delayFeedback",0.05)
-    engine.mx_set(_path.audio .. "mx.samples/" .. self.instrument,"delaysend",0.2)
+    engine.mx_global("delayBeats", 1)
+    engine.mx_global("secondsPerBeat", clock.get_beat_sec())
+    engine.mx_global("delayFeedback", 0.05)
+    engine.mx_set(_path.audio .. "mx.samples/" .. self.instrument, "delaysend", 0.2)
 
+end
+
+function Sequence:delta_param(v, d)
+    params:delta("sequence" .. self.id .. "_" .. v, d)
 end
 
 function Sequence:get_param(v)
     return params:get("sequence" .. self.id .. "_" .. v)
+end
+
+function Sequence:get_param_str(v)
+    return params:string("sequence" .. self.id .. "_" .. v)
 end
 
 function Sequence:step_peek(step, movement)
@@ -181,7 +189,7 @@ end
 function Sequence:note_on(note_index)
     local note = self.scale_full[note_index]
     table.insert(self.notes_on, {self.instrument, note})
-    local velocity = math.random(40,80)
+    local velocity = math.random(40, 80)
     engine.mx_note_on(self:instrument_folder(), note, velocity)
 end
 

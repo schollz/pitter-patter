@@ -15,7 +15,10 @@ lattice = require("lattice")
 engine.name = "MxSamplez"
 
 sequencers = {}
-playing = true
+
+debounce_show_grid = 0
+debounce_show_grid_time = 30
+
 function init()
     params_main()
     for i = 1, 4 do
@@ -36,9 +39,9 @@ function init()
 
     sequencer:new_pattern({
         action = function(t)
-            if playing then 
-            sequencers[1]:update()
-        end
+            if params:get("mainplay") == 1 then
+                sequencers[1]:update()
+            end
         end,
         division = 1 / 16
     })
@@ -56,19 +59,21 @@ function init()
 end
 
 function enc(k, d)
-    if k == 3 then
+    if k == 1 then
+        sequencers[1]:delta_param("direction", d)
+    elseif k == 2 and math.abs(d) < 2 then
+        params:set("sequence1_direction", d > 0 and 1 or 2)
+        sequencers[1]:update()
+        debounce_show_grid = debounce_show_grid_time
+    elseif k == 3 then
         sequencers[1].note_offset = sequencers[1].note_offset + d
-    elseif k == 1 then
-        sequencers[1]:set_direction_delta(d)
-    elseif k==2 and math.abs(d)<2 then 
-            params:set("sequence1_direction",d>0 and 1 or 2)
-            sequencers[1]:update()
+        debounce_show_grid = debounce_show_grid_time
     end
 end
 
 function key(k, z)
     if z == 1 and k == 3 then
-        playing = not playing
+        params:set("mainplay", params:get("mainplay") == 0 and 1 or 0)
     elseif z == 1 and k == 2 then
         sequencers[1]:update()
 
@@ -77,29 +82,33 @@ end
 
 function redraw()
     screen.clear()
+    if debounce_show_grid > debounce_show_grid_time / 10 * 3 then
+        debounce_show_grid = debounce_show_grid - 1
+    end
     -- draw the grid
     local grid_square_size = 7
     local visual = grid_:get_visual()
     for i, v in ipairs(visual) do
         for j, u in ipairs(v) do
             -- draw a box 
-            screen.level(10)
+            screen.level(util.round(3 * debounce_show_grid / debounce_show_grid_time))
             screen.line_width(1)
             screen.rect((j * grid_square_size) + 2, i * grid_square_size - grid_square_size / 2, grid_square_size,
                 grid_square_size)
             screen.stroke()
             if u > 0 then
-                screen.rect((j * grid_square_size) + 2, i * grid_square_size - grid_square_size / 2 + 1,
-                    grid_square_size - 1, grid_square_size - 1)
-                screen.level(u)
+                screen.rect((j * grid_square_size) + 3, i * grid_square_size - grid_square_size / 2 + 2,
+                    grid_square_size - 3, grid_square_size - 3)
+                screen.level(util.round(u * debounce_show_grid / debounce_show_grid_time))
                 screen.fill()
             end
         end
     end
-
-    screen.move(5, 5)
-    screen.text(sequencers[1]:get_param("direction"))
-
+    screen.level(10)
+    screen.move(0, 5)
+    screen.text(params:string("mainplay") .. " " .. sequencers[1]:get_param_str("direction"))
+    screen.move(0, 5 + 8)
+    screen.text("direction: ")
     screen.update()
 end
 
@@ -150,7 +159,7 @@ function params_main()
         div = 1,
         default = 1,
         formatter = function(param)
-            return param:get() == 0 and "off" or "playing"
+            return param:get() == 0 and "stopped" or "playing"
         end
     }}
     for _, pram in ipairs(params_menu) do
