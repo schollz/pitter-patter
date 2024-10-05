@@ -33,7 +33,7 @@ function init()
   grid_ = GridLib:new()
 
   -- set default sequencer
-  grid_.sequencer = sequencers[1]
+  grid_.sequencer = sequencers[params:get("main_sequence")]
 
   -- bang params
   params:bang()
@@ -43,7 +43,7 @@ function init()
 
   sequencer:new_pattern({
     action=function(t)
-      if params:get("main_play") == 1 then sequencers[1]:update() end
+      if params:get("main_play") == 1 then sequencers[params:get("main_sequence")]:update() end
     end,
     division=1 / 16
   })
@@ -57,19 +57,19 @@ function init()
       redraw()
     end
   end)
-  -- sequencers[1]:update()
+  -- sequencers[params:get("main_sequence")]:update()
 
 end
 
 function enc(k, d)
   if k == 1 then
-    sequencers[1]:delta_param("direction", d)
+    sequencers[params:get("main_sequence")]:delta_param("direction", d)
   elseif k == 2 and math.abs(d) < 2 then
     params:set("sequence1_direction", d > 0 and 1 or 2)
-    sequencers[1]:update()
+    sequencers[params:get("main_sequence")]:update()
     debounce_show_grid = debounce_show_grid_time
   elseif k == 3 then
-    sequencers[1].note_offset = sequencers[1].note_offset + d
+    sequencers[params:get("main_sequence")].note_offset = sequencers[params:get("main_sequence")].note_offset + d
     debounce_show_grid = debounce_show_grid_time
   end
 end
@@ -81,7 +81,7 @@ function key(k, z)
   elseif z == 1 and k == 2 then
   elseif z == 1 and k == 3 then
     if is_shift then
-      sequencers[1]:clear()
+      sequencers[params:get("main_sequence")]:clear()
     else
       params:set("main_play", params:get("main_play") == 0 and 1 or 0)
     end
@@ -113,12 +113,12 @@ function redraw()
   end
   screen.level(10)
   screen.move(0, 5)
-  screen.text(sequencers[1]:get_param_str("instrument"))
+  screen.text(sequencers[params:get("main_sequence")]:get_param_str("instrument"))
   screen.move(0, 5 + 9)
-  screen.text(params:string("main_play") .. " " .. sequencers[1]:get_param_str("direction"))
+  screen.text(params:string("main_play") .. " " .. sequencers[params:get("main_sequence")]:get_param_str("direction"))
   screen.move(0, 5 + 9 * 2)
-  screen.text(musicutil.note_num_to_name(sequencers[1]:get_note_from_index(1), true) .. " to " ..
-                  musicutil.note_num_to_name(sequencers[1]:get_note_from_index(grid_.width), true))
+  screen.text(musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(1), true) .. " to " ..
+                  musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width), true))
   screen.update()
 end
 
@@ -245,7 +245,7 @@ function params_main()
             2 then do return end end
         if d.type == "note_on" then
           print("note_on", dev.name, d.note, d.vel)
-          sequencers[1]:toggle_from_note(d.note)
+          sequencers[params:get("main_sequence")]:toggle_from_note(d.note)
         elseif d.type == "note_off" then
           print("note_off", dev.name, d.note)
         end
