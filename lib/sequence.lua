@@ -22,6 +22,11 @@ function Sequence:init()
     matrix[i] = {}
     for j = 1, self.note_max do matrix[i][j] = 0 end
   end
+
+  self.velocity_profiles = {
+    {1,1,1,1,1,1,1,1},
+    {1,1,0,1,1,0,1,0,1,0,1,0,1,0},
+  }
   -- -- add random notes to the matrix
   -- for i = 1, self.sequence_max do
   --     for j = 1, self.note_max do
@@ -43,6 +48,9 @@ function Sequence:init()
   self.step_time_before_last = self.step_time_last
   self.midi_devices = {}
   self.midi_device = midi.connect(1)
+  self.velocity_i = 1
+  self.beat = 1
+  self.last_beat = 1
   for i = 1, #midi.vports do
     local long_name = midi.vports[i].name
     local short_name = string.len(long_name) > 15 and util.acronym(long_name) or long_name
@@ -110,7 +118,23 @@ function Sequence:init()
         print("scale changed to " .. scale_names[v])
         self.scale_full = MusicUtil.generate_scale_of_length(24, v, self.note_max)
       end
-    }, {
+    },  
+    {
+      id="velocity",
+      name="velocity",
+      min=1,
+      max=#self.velocity_profiles,
+      exp=false,
+      div=1,
+      default=2,
+      formatter=function(param)
+        -- concat the table into a string
+        local str = ""
+        for i, v in ipairs(self.velocity_profiles[param:get()]) do str = str .. v end
+        return str
+      end
+    },
+    {
       id="direction",
       name="direction",
       min=1,
@@ -219,6 +243,10 @@ function Sequence:marshal()
   return data
 end
 
+function Sequence:get_velocity_profile()
+  return self.velocity_profiles[self:get_param("velocity")]
+end
+
 function Sequence:delta_param(v, d)
   params:delta("sequence" .. self.id .. "_" .. v, d)
 end
@@ -260,8 +288,10 @@ function Sequence:step_peek(step, movement)
   return step, movement
 end
 
-function Sequence:update(division)
+function Sequence:update(division,beat)
   if division ~= self.divisions[self:get_param("division")] then do return end end
+  self.last_beat = self.beat
+  self.beat = beat and beat or self.last_beat + 1
   self.step_time_before_last = self.step_time_last
   self.step_time_last = clock.get_beats()
   self.step_last = self.step
@@ -302,7 +332,15 @@ end
 function Sequence:note_on(note_index)
   local note = self.scale_full[note_index]
   table.insert(self.notes_on, {self.instrument, note})
-  local velocity = math.random(40, 80)
+  self.velocity_i = (self.beat-1)% #self:get_velocity_profile() + 1
+  if self.velocity_i > #self:get_velocity_profile() then self.velocity_i = 1 end
+  local velocity
+  if self.velocity_profiles[self:get_param("velocity")][self.velocity_i] == 1 then 
+    velocity = math.random(80, 120)
+  else
+    velocity = math.random(30,60)
+  end
+  print("note on", note, velocity)
   engine.mx_note_on(self.instrument, note, velocity)
 end
 

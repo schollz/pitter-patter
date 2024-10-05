@@ -46,12 +46,14 @@ function init()
   local sequencer = lattice:new{ppqn=96}
 
   for _, division in ipairs(divisions) do
+    local beat = 1
     sequencer:new_pattern({
       action=function(t)
         if params:get("main_play") == 1 then
           for i = 1, 4 do
-            sequencers[i]:update(division)
+            sequencers[i]:update(division,beat)
           end
+          beat = beat + 1
         end
       end,
       division=division
@@ -81,11 +83,11 @@ function enc(k, d)
       -- change sequence
       params:delta("main_sequence", d)
     end
-  elseif k == 2 and math.abs(d) < 2 then
+  elseif k == 2  then
     if is_shift then
       -- change division
       sequencers[params:get("main_sequence")]:delta_param("division", d)
-    else
+    elseif d == 1 or d==-1 then
       if params:get("main_play") == 1 then
         sequencers[params:get("main_sequence")]:delta_param("direction", d)
       else
@@ -95,7 +97,13 @@ function enc(k, d)
       end
     end
   elseif k == 3 then
-    sequencers[params:get("main_sequence")].note_offset = sequencers[params:get("main_sequence")].note_offset + d
+    if is_shift then
+      -- change velocity profile 
+      sequencers[params:get("main_sequence")]:delta_param("velocity", d)
+    else
+      -- change note offset
+      sequencers[params:get("main_sequence")].note_offset = sequencers[params:get("main_sequence")].note_offset + d
+    end
   end
   debounce_show_grid = debounce_show_grid_time
 end
@@ -122,9 +130,9 @@ function redraw()
     debounce_show_grid = debounce_show_grid - 1
   end
   -- draw the grid
-  local grid_square_size = 6
-  local grid_x = 10
-  local grid_y = 5
+  local grid_square_size = 5
+  local grid_x = 22
+  local grid_y = 6
   local visual = grid_:get_visual()
   for i, v in ipairs(visual) do
     for j, u in ipairs(v) do
@@ -135,7 +143,7 @@ function redraw()
                   grid_square_size, grid_square_size)
       screen.stroke()
       if u > 0 then
-        screen.rect((j * grid_square_size) + grid_x + 1, i * grid_square_size - grid_square_size / 2 + 1 + grid_y,
+        screen.rect((j * grid_square_size) + grid_x + 1, i * grid_square_size - grid_square_size / 2 + 2 + grid_y,
                     grid_square_size - 3, grid_square_size - 3)
         screen.level(util.round(u * debounce_show_grid / debounce_show_grid_time))
         screen.fill()
@@ -157,8 +165,19 @@ function redraw()
   local note_string =
       musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(1), true) .. " to " ..
           musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width - 1), true)
-  screen.move(128, 64 - 2)
+  screen.move(128, 64 - 1)
   screen.text_right(note_string)
+
+  -- draw velocity profile 
+  local velocity_spacing = 4
+  local velocity_profile= sequencers[params:get("main_sequence")]:get_velocity_profile()
+  for i,v in ipairs(velocity_profile) do
+    screen.level(v==1 and 10 or 2)
+    screen.circle(128 - (#velocity_profile+0.5)*1.5*velocity_spacing+i*velocity_spacing*1.5 + 1, 64-11, velocity_spacing/2)
+    screen.fill()
+  end
+
+
   screen.update()
 end
 
