@@ -17,8 +17,6 @@ function Sequence:init()
   for i = 1, #MusicUtil.SCALES do table.insert(scale_names, string.lower(MusicUtil.SCALES[i].name)) end
 
   self.scale_full = MusicUtil.generate_scale_of_length(24, 1, self.note_max)
-  -- reverse the scale so that the lowest note is at the bottom
-  table.reverse(self.scale_full)
   local matrix = {}
   for i = 1, self.sequence_max do
     matrix[i] = {}
@@ -99,7 +97,6 @@ function Sequence:init()
       action=function(v)
         print("scale changed to " .. scale_names[v])
         self.scale_full = MusicUtil.generate_scale_of_length(24, v, self.note_max)
-        table.reverse(self.scale_full)
       end
     }, {
       id="direction",

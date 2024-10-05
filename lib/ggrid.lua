@@ -55,6 +55,7 @@ function GGrid:grid_key(x, y, z)
 end
 
 function GGrid:key_press(row, col, on)
+  local flipped_row = self.height - row
   if on then
     self.pressed_buttons[row .. "," .. col] = true
   else
@@ -65,9 +66,9 @@ function GGrid:key_press(row, col, on)
     self.sequencer:toggle_note(col)
   elseif on and row < self.height then
     -- toggle specific position
-    print(row, col)
-    local step_index = col + math.floor((self.sequencer.step - 1) / 16) * 16
-    self.sequencer:toggle_pos(step_index, row)
+    print(flipped_row, col)
+    local step_index = (col) + math.floor((self.sequencer.step - 1) / 16) * 16
+    self.sequencer:toggle_pos(step_index, flipped_row) -- Use flipped_row
   elseif on and row == self.height and col == self.width then
     self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
   end
@@ -90,7 +91,7 @@ function GGrid:get_visual()
     local step_offset = math.floor((self.sequencer.step - 1) / self.width) * self.width
     for i = 1, self.width do
       for j = 1, self.height - 1 do
-        local note_index = (j + self.sequencer.note_offset - 1) % self.sequencer.note_limit + 1
+        local note_index = self.sequencer:get_note_index(self.height - j)
         if self.sequencer.matrix[i + step_offset][note_index] > 0 then
           self.visual[j][i] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
         end
@@ -107,7 +108,8 @@ function GGrid:get_visual()
 
     -- show keyboard
     for col = 1, self.width - 1 do
-      self.visual[self.height][col] = 12 - (self.sequencer:get_note_from_index(col) % 12) + 2
+      local note_index = self.sequencer:get_note_index(col)
+      self.visual[self.height][col] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
     end
 
   end

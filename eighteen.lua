@@ -117,8 +117,9 @@ function redraw()
   screen.move(0, 5 + 9)
   screen.text(params:string("main_play") .. " " .. sequencers[params:get("main_sequence")]:get_param_str("direction"))
   screen.move(0, 5 + 9 * 2)
-  screen.text(musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(1), true) .. " to " ..
-                  musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width), true))
+  screen.text(
+      musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(1), true) .. " to " ..
+          musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width - 1), true))
   screen.update()
 end
 
