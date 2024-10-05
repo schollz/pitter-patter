@@ -113,7 +113,7 @@ MxSamplezInstrument {
 			snd=PlayBuf.ar(2,buf1,rate,t_trig,startPos:startPos*frames1,doneAction:Select.kr(frames1>frames2,[0,2]));
 			snd2=PlayBuf.ar(2,buf2,rate,t_trig,startPos:startPos*frames2,doneAction:Select.kr(frames2>frames1,[0,2]));
 			snd=(buf1mix*snd)+((1-buf1mix)*snd2);//SelectX.ar(buf1mix,[snd2,snd]);
-			snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate+EnvGen.kr(Env.new([0,0,1],[10,0.1])),doneAction:2);
 			DetectSilence.ar(snd,0.0005,doneAction:2);
 			snd=Balance2.ar(snd[0],snd[1],pan,amp);
 			snd=snd/4; // assume ~ 4 note polyphony so reduce max volume
@@ -133,7 +133,7 @@ MxSamplezInstrument {
 			snd=PlayBuf.ar(1,buf1,rate,t_trig,startPos:startPos*frames1,doneAction:Select.kr(frames1>frames2,[0,2]));
 			snd2=PlayBuf.ar(1,buf2,rate,t_trig,startPos:startPos*frames2,doneAction:Select.kr(frames2>frames1,[0,2]));
 			snd=SelectX.ar(buf1mix,[snd2,snd]);
-			snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate,doneAction:2);
+			snd=snd*EnvGen.ar(Env.adsr(attack,decay,sustain,release),gate+EnvGen.kr(Env.new([0,0,1],[10,0.1])),doneAction:2);
 			DetectSilence.ar(snd,0.001,doneAction:2);
 			snd=Pan2.ar(snd,pan,amp);
 			snd=snd/4; // assume ~ 4 note polyphony so reduce max volume

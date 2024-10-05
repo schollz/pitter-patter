@@ -38,7 +38,6 @@ function Sequence:init()
     self.notes_on = {}
     self.step_time_last = clock.get_beats()
     self.step_time_before_last = self.step_time_last
-    self.note_to_play = {}
     self.midi_devices = {}
     self.midi_device = midi.connect(1)
     for i = 1, #midi.vports do
@@ -253,14 +252,12 @@ function Sequence:update()
     for _, note_data in ipairs(self.notes_on) do
         local instrument = note_data[1]
         local note = note_data[2]
-        engine.mx_note_off(self.instrument, note)
+        engine.mx_note_off(instrument, note)
     end
 
     -- emit those notes
     self.notes_on = {}
-    for i, note in ipairs(notes) do self.note_to_play[note] = true end
-    for i, v in pairs(self.note_to_play) do if v then self:note_on(i) end end
-    self.note_to_play = {}
+    for i, note in pairs(notes) do self:note_on(note) end
 
     -- check if there are notes to ghost
     if #self.notes_to_ghost > 0 then
