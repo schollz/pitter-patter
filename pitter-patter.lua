@@ -39,8 +39,8 @@ local divisions_strings = {"4 beats", "2 beats", "1 beat", "1/2", "1/4", "1/8", 
 function init()
   nb:init()
 
-  params_main()
   for i = 1, 4 do sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings}) end
+  params_main()
   print("sequencer 3 id: ", sequencers[3].id)
   grid_ = GridLib:new()
 
@@ -207,7 +207,7 @@ function params_main()
   local params_menu = {
     {
       id="sequence",
-      name="sequence",
+      name="sequence select",
       min=1,
       max=4,
       exp=false,
