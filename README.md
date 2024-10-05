@@ -1,6 +1,6 @@
 # pitter-patter
 
-make sequences with a grid or a MIDI controller.
+press and make quantized patterns of sequence across four tracks, using a grid or a midi controller.
 
 ![image](https://repository-images.githubusercontent.com/865110977/47cb53b1-eb3e-4ee1-98e8-f748a441c9b4)
 
@@ -21,10 +21,18 @@ make sequences with a grid or a MIDI controller.
 - K2: n/a
 - K3: Play/stop the sequence
 
-### Additional Grid Controls
+### grid controls
 
 The last row of the grid is a keyboard.
 
 The last row, last column of the grid shifts to the next octave (and aligns the octave).
 
 All the other buttons enter in notes (press and hold two to create ranges).
+
+## install
+
+you can install through maiden:
+
+```
+;install https://github.com/schollz/pitter-patter
+```

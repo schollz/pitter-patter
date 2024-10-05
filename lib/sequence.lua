@@ -162,7 +162,7 @@ function Sequence:init()
       div=1,
       default=1,
       formatter=function(param)
-        local outputs = {"none", "midi", "crow out 1+2", "crow ii JF", "crow ii 301"}
+        local outputs = {"supercollider", "midi", "crow out 1+2", "crow ii JF", "crow ii 301"}
         return outputs[param:get()]
       end,
       action=function(value)
@@ -308,7 +308,12 @@ function Sequence:update(division, beat)
   for _, note_data in ipairs(self.notes_on) do
     local instrument = note_data[1]
     local note = note_data[2]
-    engine.mx_note_off(instrument, note)
+    if self:get_param("output") == 1 then
+      engine.mx_note_off(instrument, note)
+    elseif self:get_param("output") == 2 then
+      -- midi output
+      if self.midi_out_device then self.midi_out_device:note_off(note, 0, self:get_param("midi_out_channel")) end
+    end
   end
 
   -- emit those notes
@@ -344,7 +349,21 @@ function Sequence:note_on(note_index)
     velocity = math.random(20, 60)
   end
   -- print("note on", note, velocity)
-  engine.mx_note_on(self.instrument, note, velocity)
+  if self:get_param("output") == 1 then
+    engine.mx_note_on(self.instrument, note, velocity)
+  elseif self:get_param("output") == 2 then
+    -- midi output
+    -- TODO 
+    if self.midi_out_device then self.midi_out_device:note_on(note, velocity, self:get_param("midi_out_channel")) end
+  elseif self:get_param("output") == 3 then
+    crow.output[1].volts = (note - 60) / 12
+    crow.output[2].execute()
+  elseif self:get_param("output") == 4 then
+    crow.ii.jf.play_note((note - 60) / 12, 5)
+  elseif self:get_param("output") == 5 then -- er301
+    crow.ii.er301.cv(1, (note - 60) / 12)
+    crow.ii.er301.tr_pulse(1)
+  end
 end
 
 function Sequence:clear()
