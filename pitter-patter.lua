@@ -33,9 +33,7 @@ local divisions_strings = {"4 beats", "2 beats", "1 beat", "1/2", "1/4", "1/8", 
 function init()
 
   params_main()
-  for i = 1, 4 do
-    sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings})
-  end
+  for i = 1, 4 do sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings}) end
   print("sequencer 3 id: ", sequencers[3].id)
   grid_ = GridLib:new()
 
@@ -50,9 +48,7 @@ function init()
     sequencer:new_pattern({
       action=function(t)
         if params:get("main_play") == 1 then
-          for i = 1, 4 do
-            sequencers[i]:update(division,beat)
-          end
+          for i = 1, 4 do sequencers[i]:update(division, beat) end
           beat = beat + 1
         end
       end,
@@ -83,11 +79,11 @@ function enc(k, d)
       -- change sequence
       params:delta("main_sequence", d)
     end
-  elseif k == 2  then
+  elseif k == 2 then
     if is_shift then
       -- change division
       sequencers[params:get("main_sequence")]:delta_param("division", d)
-    elseif d == 1 or d==-1 then
+    elseif d == 1 or d == -1 then
       if params:get("main_play") == 1 then
         sequencers[params:get("main_sequence")]:delta_param("direction", d)
       else
@@ -123,12 +119,8 @@ end
 
 function redraw()
   screen.clear()
-  if is_shift then
-    debounce_show_grid = debounce_show_grid_time
-  end
-  if debounce_show_grid > debounce_show_grid_time / 10 * 2 then
-    debounce_show_grid = debounce_show_grid - 1
-  end
+  if is_shift then debounce_show_grid = debounce_show_grid_time end
+  if debounce_show_grid > debounce_show_grid_time / 10 * 2 then debounce_show_grid = debounce_show_grid - 1 end
   -- draw the grid
   local grid_square_size = 5
   local grid_x = 22
@@ -170,13 +162,13 @@ function redraw()
 
   -- draw velocity profile 
   local velocity_spacing = 4
-  local velocity_profile= sequencers[params:get("main_sequence")]:get_velocity_profile()
-  for i,v in ipairs(velocity_profile) do
-    screen.level(v==1 and 10 or 2)
-    screen.circle(128 - (#velocity_profile+0.5)*1.5*velocity_spacing+i*velocity_spacing*1.5 + 1, 64-11, velocity_spacing/2)
+  local velocity_profile = sequencers[params:get("main_sequence")]:get_velocity_profile()
+  for i, v in ipairs(velocity_profile) do
+    screen.level(v == 1 and 10 or 2)
+    screen.circle(128 - (#velocity_profile + 0.5) * 1.5 * velocity_spacing + i * velocity_spacing * 1.5 + 1, 64 - 11,
+                  velocity_spacing / 2)
     screen.fill()
   end
-
 
   screen.update()
 end
@@ -190,18 +182,14 @@ end
 
 function table.reverse(t)
   local len = #t
-  for i = len - 1, 1, -1 do
-    t[len] = table.remove(t, i)
-  end
+  for i = len - 1, 1, -1 do t[len] = table.remove(t, i) end
 end
 
 function params_main()
   midi_connections = {}
   local midi_devices = {"any", "none"}
   local midi_channels = {"all"}
-  for i = 1, 16 do
-    table.insert(midi_channels, i)
-  end
+  for i = 1, 16 do table.insert(midi_channels, i) end
   for j, dev in pairs(midi.devices) do
     if dev.port ~= nil then
       print("midi device: ", dev.name)
@@ -224,17 +212,6 @@ function params_main()
       action=function(v)
         print("sequence", v)
         grid_.sequencer = sequencers[v]
-      end
-    }, {
-      id="record",
-      name="record",
-      min=0,
-      max=1,
-      exp=false,
-      div=1,
-      default=1,
-      formatter=function(param)
-        return param:get() == 0 and "off" or "recording"
       end
     }, {
       id="play",
@@ -280,12 +257,8 @@ function params_main()
                                   pram.unit or "", pram.div / (pram.max - pram.min)),
       formatter=pram.formatter
     }
-    if pram.hide then
-      params:hide(pram.id)
-    end
-    if pram.action then
-      params:set_action("main_" .. pram.id, pram.action)
-    end
+    if pram.hide then params:hide(pram.id) end
+    if pram.action then params:set_action("main_" .. pram.id, pram.action) end
     -- params:set_action(pram.id, function(v)
     --     engine.main_set(pram.id, pram.fn ~= nil and pram.fn(v) or v)
     -- end)
@@ -309,24 +282,14 @@ function params_main()
         --     print("cc",d.cc,d.val)
         --   end
         -- end
-        if params:get("main_midi_input") == 2 then
-          do
-            return
-          end
-        end
+        if params:get("main_midi_input") == 2 then do return end end
         if dev.name ~= midi_devices[params:get("main_midi_input")] and params:get("main_midi_input") > 2 then
-          do
-            return
-          end
+          do return end
         end
         if d.ch ~= nil and d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") >
-            2 then
-          do
-            return
-          end
-        end
+            2 then do return end end
         if d.type == "note_on" then
-          print("note_on", dev.name, d.note, d.vel)
+          -- print("note_on", dev.name, d.note, d.vel)
           sequencers[params:get("main_sequence")]:toggle_from_note(d.note)
         elseif d.type == "note_off" then
           print("note_off", dev.name, d.note)
@@ -353,25 +316,13 @@ function params_action()
     print("[params.action_read]", filename, silent)
     -- load all the patterns
     filename = filename .. ".json"
-    if not util.file_exists(filename) then
-      do
-        return
-      end
-    end
+    if not util.file_exists(filename) then do return end end
     local f = io.open(filename, "rb")
     local content = f:read("*all")
     f:close()
-    if content == nil then
-      do
-        return
-      end
-    end
+    if content == nil then do return end end
     local data = json.decode(content)
-    if data == nil then
-      do
-        return
-      end
-    end
+    if data == nil then do return end end
     -- pattern_current = data.pattern_current
     -- pattern_store = data.pattern_store
     -- bass_pattern_current = data.bass_pattern_current
