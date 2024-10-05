@@ -7,9 +7,11 @@
 --
 --    ▼ instructions below ▼
 -- 
--- E1: change direction
--- E2: hand crank
--- E3: note offset
+-- E1: change sequence
+-- E2: change direction
+-- E3: change note pool
+-- K1+E1: change instrument
+-- K1+E2: change direction
 -- K1: shift
 -- K2:
 -- K3: play/stop
@@ -25,10 +27,15 @@ sequencers = {}
 
 debounce_show_grid_time = 30
 debounce_show_grid = debounce_show_grid_time
+local divisions = {4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32}
+local divisions_strings = {"4 beats", "2 beats", "1 beat", "1/2", "1/4", "1/8", "1/16", "1/32"}
 
 function init()
+
   params_main()
-  for i = 1, 4 do sequencers[i] = Sequence:new({id=i}) end
+  for i = 1, 4 do
+    sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings})
+  end
   print("sequencer 3 id: ", sequencers[3].id)
   grid_ = GridLib:new()
 
@@ -41,12 +48,19 @@ function init()
   -- start lattice
   local sequencer = lattice:new{ppqn=96}
 
-  sequencer:new_pattern({
-    action=function(t)
-      if params:get("main_play") == 1 then sequencers[params:get("main_sequence")]:update() end
-    end,
-    division=1 / 16
-  })
+  for _, division in ipairs(divisions) do
+    sequencer:new_pattern({
+      action=function(t)
+        if params:get("main_play") == 1 then
+          for i = 1, 4 do
+            sequencers[i]:update(division)
+          end
+        end
+      end,
+      division=division
+    })
+  end
+
   clock.run(function()
     clock.sleep(0.1)
     sequencer:hard_restart()
@@ -57,24 +71,38 @@ function init()
       redraw()
     end
   end)
-  -- sequencers[params:get("main_sequence")]:update()
-
-end
-
-function enc(k, d)
-  if k == 1 then
-    sequencers[params:get("main_sequence")]:delta_param("direction", d)
-  elseif k == 2 and math.abs(d) < 2 then
-    params:set("sequence1_direction", d > 0 and 1 or 2)
-    sequencers[params:get("main_sequence")]:update()
-    debounce_show_grid = debounce_show_grid_time
-  elseif k == 3 then
-    sequencers[params:get("main_sequence")].note_offset = sequencers[params:get("main_sequence")].note_offset + d
-    debounce_show_grid = debounce_show_grid_time
-  end
 end
 
 local is_shift = false
+
+function enc(k, d)
+  if k == 1 then
+    if is_shift then
+      -- change instrument
+      sequencers[params:get("main_sequence")]:delta_param("instrument", d)
+    else
+      -- change sequence
+      params:delta("main_sequence", d)
+    end
+  elseif k == 2 and math.abs(d) < 2 then
+    if is_shift then
+      -- change division
+      sequencers[params:get("main_sequence")]:delta_param("division", d)
+    else
+      if params:get("main_play") == 1 then
+        sequencers[params:get("main_sequence")]:delta_param("direction", d)
+      else
+        sequencers[params:get("main_sequence")]:set_param("direction", d < 0 and 1 or 4)
+        sequencers[params:get("main_sequence")]:update(divisions[sequencers[params:get("main_sequence")]:get_param(
+                                                           "division")])
+      end
+    end
+  elseif k == 3 then
+    sequencers[params:get("main_sequence")].note_offset = sequencers[params:get("main_sequence")].note_offset + d
+  end
+  debounce_show_grid = debounce_show_grid_time
+end
+
 function key(k, z)
   if k == 1 then
     is_shift = z == 1
@@ -90,22 +118,28 @@ end
 
 function redraw()
   screen.clear()
-  if is_shift then debounce_show_grid = debounce_show_grid_time end
-  if debounce_show_grid > debounce_show_grid_time / 10 * 2 then debounce_show_grid = debounce_show_grid - 1 end
+  if is_shift then
+    debounce_show_grid = debounce_show_grid_time
+  end
+  if debounce_show_grid > debounce_show_grid_time / 10 * 2 then
+    debounce_show_grid = debounce_show_grid - 1
+  end
   -- draw the grid
-  local grid_square_size = 7
+  local grid_square_size = 6
+  local grid_x = 10
+  local grid_y = 5
   local visual = grid_:get_visual()
   for i, v in ipairs(visual) do
     for j, u in ipairs(v) do
       -- draw a box 
       screen.level(util.round(4 * debounce_show_grid / debounce_show_grid_time))
       screen.line_width(1)
-      screen.rect((j * grid_square_size) + 2, i * grid_square_size - grid_square_size / 2, grid_square_size,
-                  grid_square_size)
+      screen.rect((j * grid_square_size) + grid_x, i * grid_square_size - grid_square_size / 2 + grid_y,
+                  grid_square_size, grid_square_size)
       screen.stroke()
       if u > 0 then
-        screen.rect((j * grid_square_size) + 3, i * grid_square_size - grid_square_size / 2 + 2, grid_square_size - 3,
-                    grid_square_size - 3)
+        screen.rect((j * grid_square_size) + grid_x + 1, i * grid_square_size - grid_square_size / 2 + 1 + grid_y,
+                    grid_square_size - 3, grid_square_size - 3)
         screen.level(util.round(u * debounce_show_grid / debounce_show_grid_time))
         screen.fill()
       end
@@ -113,13 +147,21 @@ function redraw()
   end
   screen.level(10)
   screen.move(0, 5)
-  screen.text(sequencers[params:get("main_sequence")]:get_param_str("instrument"))
-  screen.move(0, 5 + 9)
-  screen.text(params:string("main_play") .. " " .. sequencers[params:get("main_sequence")]:get_param_str("direction"))
-  screen.move(0, 5 + 9 * 2)
-  screen.text(
+  -- show the current sequence
+  screen.text("sequence " .. params:get("main_sequence"))
+  local instrument_string = sequencers[params:get("main_sequence")]:get_param_str("instrument")
+  -- get length of string
+  screen.move(128, 5)
+  screen.text_right(instrument_string)
+  screen.move(0, 64 - 2)
+  screen.text(params:string("main_play") .. sequencers[params:get("main_sequence")]:get_param_str("direction") .. " " ..
+                  sequencers[params:get("main_sequence")]:get_param_str("division"))
+
+  local note_string =
       musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(1), true) .. " to " ..
-          musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width - 1), true))
+          musicutil.note_num_to_name(sequencers[params:get("main_sequence")]:get_note_from_index(grid_.width - 1), true)
+  screen.move(128, 64 - 2)
+  screen.text_right(note_string)
   screen.update()
 end
 
@@ -132,14 +174,18 @@ end
 
 function table.reverse(t)
   local len = #t
-  for i = len - 1, 1, -1 do t[len] = table.remove(t, i) end
+  for i = len - 1, 1, -1 do
+    t[len] = table.remove(t, i)
+  end
 end
 
 function params_main()
   midi_connections = {}
   local midi_devices = {"any", "none"}
   local midi_channels = {"all"}
-  for i = 1, 16 do table.insert(midi_channels, i) end
+  for i = 1, 16 do
+    table.insert(midi_channels, i)
+  end
   for j, dev in pairs(midi.devices) do
     if dev.port ~= nil then
       print("midi device: ", dev.name)
@@ -179,7 +225,7 @@ function params_main()
       div=1,
       default=1,
       formatter=function(param)
-        return param:get() == 0 and "stopped" or "playing"
+        return param:get() == 0 and "" or "play "
       end
     }, {
       id="midi_input",
@@ -214,7 +260,9 @@ function params_main()
                                   pram.unit or "", pram.div / (pram.max - pram.min)),
       formatter=pram.formatter
     }
-    if pram.hide then params:hide(pram.id) end
+    if pram.hide then
+      params:hide(pram.id)
+    end
     -- params:set_action(pram.id, function(v)
     --     engine.main_set(pram.id, pram.fn ~= nil and pram.fn(v) or v)
     -- end)
@@ -238,12 +286,22 @@ function params_main()
         --     print("cc",d.cc,d.val)
         --   end
         -- end
-        if params:get("main_midi_input") == 2 then do return end end
+        if params:get("main_midi_input") == 2 then
+          do
+            return
+          end
+        end
         if dev.name ~= midi_devices[params:get("main_midi_input")] and params:get("main_midi_input") > 2 then
-          do return end
+          do
+            return
+          end
         end
         if d.ch ~= nil and d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") >
-            2 then do return end end
+            2 then
+          do
+            return
+          end
+        end
         if d.type == "note_on" then
           print("note_on", dev.name, d.note, d.vel)
           sequencers[params:get("main_sequence")]:toggle_from_note(d.note)
@@ -272,13 +330,25 @@ function params_action()
     print("[params.action_read]", filename, silent)
     -- load all the patterns
     filename = filename .. ".json"
-    if not util.file_exists(filename) then do return end end
+    if not util.file_exists(filename) then
+      do
+        return
+      end
+    end
     local f = io.open(filename, "rb")
     local content = f:read("*all")
     f:close()
-    if content == nil then do return end end
+    if content == nil then
+      do
+        return
+      end
+    end
     local data = json.decode(content)
-    if data == nil then do return end end
+    if data == nil then
+      do
+        return
+      end
+    end
     -- pattern_current = data.pattern_current
     -- pattern_store = data.pattern_store
     -- bass_pattern_current = data.bass_pattern_current

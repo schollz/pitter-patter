@@ -83,6 +83,18 @@ function Sequence:init()
           self.instrument = _path.audio .. "mx.samples/" .. instrument_folders[v - 1]
         end
       end
+    }, -- division
+    {
+      id="division",
+      name="clock division",
+      min=1,
+      max=8,
+      exp=false,
+      div=1,
+      default=7,
+      formatter=function(param)
+        return self.divisions_strings[param:get()]
+      end
     }, {
       id="scale",
       name="scale",
@@ -105,9 +117,9 @@ function Sequence:init()
       max=4,
       exp=false,
       div=1,
-      default=1,
+      default=4,
       formatter=function(param)
-        local directions = {"forward", "backward", "ping pong", "random"}
+        local directions = {"backward", "ping pong", "random", "forward"}
         return directions[param:get()]
       end
     }, {
@@ -215,20 +227,24 @@ function Sequence:get_param(v)
   return params:get("sequence" .. self.id .. "_" .. v)
 end
 
+function Sequence:set_param(v, value)
+  params:set("sequence" .. self.id .. "_" .. v, value)
+end
+
 function Sequence:get_param_str(v)
   return params:string("sequence" .. self.id .. "_" .. v)
 end
 
 function Sequence:step_peek(step, movement)
-  if self:get_param("direction") == 1 then
+  if self:get_param("direction") == 4 then
     movement = 1
     step = step + 1
     while step > self:get_param("limit") do step = step - self:get_param("limit") end
-  elseif self:get_param("direction") == 2 then
+  elseif self:get_param("direction") == 1 then
     movement = -1
     step = step - 1
     while step < 1 do step = step + self:get_param("limit") end
-  elseif self:get_param("direction") == 3 then
+  elseif self:get_param("direction") == 2 then
     step = step + movement
     if step > self:get_param("limit") then
       step = self:get_param("limit") - 1
@@ -238,13 +254,14 @@ function Sequence:step_peek(step, movement)
       step = 2
       movement = 1
     end
-  elseif self:get_param("direction") == 4 then
+  elseif self:get_param("direction") == 3 then
     step = math.random(1, self:get_param("limit"))
   end
   return step, movement
 end
 
-function Sequence:update()
+function Sequence:update(division)
+  if division ~= self.divisions[self:get_param("division")] then do return end end
   self.step_time_before_last = self.step_time_last
   self.step_time_last = clock.get_beats()
   self.step_last = self.step
