@@ -1,3 +1,6 @@
 [submodule "data/lib/nb"]
 	path = data/lib/nb
 	url = https://github.com/sixolet/nb.git
+[submodule "lib/nb"]
+	path = lib/nb
+	url = https://github.com/sixolet/nb.git
