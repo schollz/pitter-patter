@@ -102,7 +102,7 @@ function GGrid:get_visual()
             for j = 1, self.height - 1 do
                 local note_index = (j + self.sequencer.note_offset - 1) % self.sequencer.note_limit + 1
                 if self.sequencer.matrix[i + step_offset][note_index] > 0 then
-                    self.visual[j][i] = 12-(self.sequencer.scale_full[note_index] % 12) + 2
+                    self.visual[j_][i] = 12-(self.sequencer.scale_full[note_index] % 12) + 2
                 end
             end
         end
