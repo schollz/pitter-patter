@@ -21,13 +21,21 @@ press and make quantized patterns of sequence across four tracks, using a grid o
 - K2: n/a
 - K3: Play/stop the sequence
 
+the supercollider engine uses `mx.samples` which you can optionally install:
+
+```shell
+;install https://github.com/schollz/mx.samples
+```
+
+and, once installed, download any sound packs you want which you can then use with pitter-patter.
+
 ### grid controls
 
-The last row of the grid is a keyboard.
+the last row of the grid is a keyboard.
 
-The last row, last column of the grid shifts to the next octave (and aligns the octave).
+the last row, last column of the grid shifts to the next octave (and aligns the octave).
 
-All the other buttons enter in notes (press and hold two to create ranges).
+all the other buttons enter in notes (press and hold two to create ranges).
 
 ## install
 
