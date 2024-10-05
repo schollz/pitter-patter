@@ -35,6 +35,9 @@ function init()
     -- set default sequencer
     grid_.sequencer = sequencers[1]
 
+    -- bang params
+    params:bang()
+
     -- start lattice
     local sequencer = lattice:new{ppqn = 96}
 
@@ -57,6 +60,7 @@ function init()
         end
     end)
     -- sequencers[1]:update()
+
 end
 
 function enc(k, d)

@@ -13,6 +13,11 @@ end
 function Sequence:init()
     self.sequence_max = 16 * 4 -- 16 steps, 4 measures
     self.note_max = 7 * 6 -- 4 octaves
+    local scale_names = {}
+    for i = 1, #MusicUtil.SCALES do
+        table.insert(scale_names, string.lower(MusicUtil.SCALES[i].name))
+    end
+
     self.scale_full = MusicUtil.generate_scale_of_length(24, 1, self.note_max)
     local matrix = {}
     for i = 1, self.sequence_max do
@@ -81,6 +86,22 @@ function Sequence:init()
                     self.instrument = _path.audio .. "mx.samples/" ..
                                           instrument_folders[v - 1]
                 end
+            end
+        }, {
+            id = "scale",
+            name = "scale",
+            min = 1,
+            max = #scale_names,
+            exp = false,
+            div = 1,
+            default = 1,
+            formatter = function(param)
+                return scale_names[param:get()]
+            end,
+            action = function(v)
+                print("scale changed to " .. scale_names[v])
+                self.scale_full = MusicUtil.generate_scale_of_length(24, v,
+                                                                     self.note_max)
             end
         }, {
             id = "direction",
