@@ -238,6 +238,14 @@ function Sequence:marshal()
   return data
 end
 
+function Sequence:unmarshal(data)
+  self.matrix = data.matrix
+  self.step = data.step
+  self.movement = data.movement
+  self.notes_to_ghost = data.notes_to_ghost
+  self.note_offset = data.note_offset
+end
+
 function Sequence:get_velocity_profile()
   return self.velocity_profiles[self:get_param("velocity")]
 end
@@ -335,7 +343,7 @@ function Sequence:note_on(note_index)
   else
     velocity = math.random(20, 60)
   end
-  print("note on", note, velocity)
+  -- print("note on", note, velocity)
   engine.mx_note_on(self.instrument, note, velocity)
 end
 

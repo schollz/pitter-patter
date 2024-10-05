@@ -21,6 +21,10 @@ GridLib = include("pitter-patter/lib/ggrid")
 Sequence = include("pitter-patter/lib/sequence")
 lattice = require("lattice")
 nb = include("lib/nb/lib/nb")
+if not string.find(package.cpath,"/home/we/dust/code/pitter-patter/lib/") then
+  package.cpath=package.cpath..";/home/we/dust/code/pitter-patter/lib/?.so"
+end
+json=require("cjson")
 local musicutil = require("musicutil")
 
 engine.name = "MxSamplez"
@@ -301,14 +305,13 @@ function params_main()
       end
     end
   end
-end
 
-function params_action()
   params.action_write = function(filename, name)
     print("[params.action_write]", filename, name)
-    local data = {
-      -- pattern_current = pattern_current,
-    }
+    local data = {    }
+    for i=1,4 do
+      data["sequence_"..i] = sequencers[i]:marshal()
+    end
     filename = filename .. ".json"
     local file = io.open(filename, "w+")
     io.output(file)
@@ -327,9 +330,8 @@ function params_action()
     if content == nil then do return end end
     local data = json.decode(content)
     if data == nil then do return end end
-    -- pattern_current = data.pattern_current
-    -- pattern_store = data.pattern_store
-    -- bass_pattern_current = data.bass_pattern_current
-    -- bass_pattern_store = data.bass_pattern_store
+    for i=1,4 do
+      sequencers[i]:unmarshal(data["sequence_"..i])
+    end
   end
 end
