@@ -78,7 +78,7 @@ function Sequence:init()
       end,
       action=function(v)
         if v == 1 then
-          self.instrument = _path.code .. "eighteen/data"
+          self.instrument = _path.code .. "pitter-patter/data"
         else
           self.instrument = _path.audio .. "mx.samples/" .. instrument_folders[v - 1]
         end
@@ -200,7 +200,7 @@ function Sequence:init()
     if pram.hide then params:hide(pram.id) end
   end
 
-  self.instrument = _path.code .. "eighteen/data"
+  self.instrument = _path.code .. "pitter-patter/data"
 
   engine.mx_global("delayBeats", 1)
   engine.mx_global("secondsPerBeat", clock.get_beat_sec())

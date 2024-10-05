@@ -1,7 +1,7 @@
--- eighteen v0.0.1
+-- pitter-patter v0.0.1
 --
 --
--- llllllll.co/t/eighteen
+-- llllllll.co/t/pitter-patter
 --
 --
 --
@@ -17,8 +17,8 @@
 -- K3: play/stop
 -- K1+K2: 
 -- K1+K3: clear
-GridLib = include("eighteen/lib/ggrid")
-Sequence = include("eighteen/lib/sequence")
+GridLib = include("pitter-patter/lib/ggrid")
+Sequence = include("pitter-patter/lib/sequence")
 lattice = require("lattice")
 local musicutil = require("musicutil")
 engine.name = "MxSamplez"
