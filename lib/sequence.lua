@@ -154,6 +154,17 @@ function Sequence:init()
       end
     }, -- midi parameters
     {
+      id="probability",
+      name="probability",
+      min=0,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=1.0,
+      formatter=function(param)
+        return param:get() * 100 .. "%"
+      end
+    }, {
       id="output",
       name="output",
       min=1,
@@ -202,8 +213,192 @@ function Sequence:init()
       formatter=function(param)
         return "ch " .. math.floor(param:get())
       end
+    }, {
+      id="db",
+      name="volume",
+      min=-96,
+      max=32,
+      exp=false,
+      div=1,
+      default=0,
+      formatter=function(param)
+        return param:get() .. " dB"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "amp", util.dbamp(v))
+      end
+    }, {
+      id="pan",
+      name="pan",
+      min=-1,
+      max=1,
+      exp=false,
+      div=0.025,
+      default=0,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "pan", v)
+      end
+    }, {
+      id="attack",
+      name="attack",
+      min=0.01,
+      max=1,
+      exp=true,
+      div=0.01,
+      default=0.01,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "attack", v)
+      end
+    }, {
+      id="decay",
+      name="decay",
+      min=0.1,
+      max=5,
+      exp=true,
+      div=0.1,
+      default=0.1,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "decay", v)
+      end
+    }, {
+      id="sustain",
+      name="sustain",
+      min=0,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=1,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "sustain", v)
+      end
+    }, {
+      id="release",
+      name="release",
+      min=0.1,
+      max=10,
+      exp=false,
+      div=0.1,
+      default=5,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "release", v)
+      end
+    }, {
+      id="fadetime",
+      name="fadetime",
+      min=0.1,
+      max=5,
+      exp=true,
+      div=0.1,
+      default=1,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "fadetime", v)
+      end
+    }, {
+      id="delaysend",
+      name="delay send",
+      min=0,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=0,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "delaysend", v)
+      end
+    }, {
+      id="reverbsend",
+      name="reverb send",
+      min=0,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=0,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "reverbsend", v)
+      end
+    }, {
+      id="lpf",
+      name="low pass filter",
+      min=20,
+      max=18000,
+      exp=true,
+      div=100,
+      default=18000,
+      formatter=function(param)
+        return param:get() .. " Hz"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "lpf", v)
+      end
+    }, {
+      id="lpfrq",
+      name="low pass filter resonance",
+      min=0.1,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=0.707,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "lpfrq", v)
+      end
+    }, {
+      id="hpf",
+      name="high pass filter",
+      min=20,
+      max=18000,
+      exp=true,
+      div=10,
+      default=20,
+      formatter=function(param)
+        return param:get() .. " Hz"
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "hpf", v)
+      end
+    }, {
+      id="hpfrq",
+      name="high pass filter resonance",
+      min=0.1,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=1,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=function(v)
+        engine.mx_set(self.instrument, "hpfrq", v)
+      end
     }
+
   }
+
   params:add_group("SEQUENCE " .. self.id, #params_menu)
   for _, pram in ipairs(params_menu) do
     pram.id = "sequence" .. self.id .. "_" .. pram.id
@@ -338,6 +533,7 @@ function Sequence:update(division, beat)
 end
 
 function Sequence:note_on(note_index)
+  if self:get_param("probability") < math.random() then do return end end
   local note = self.scale_full[note_index]
   table.insert(self.notes_on, {self.instrument, note})
   self.velocity_i = (self.beat - 1) % #self:get_velocity_profile() + 1

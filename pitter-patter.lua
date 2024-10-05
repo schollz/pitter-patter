@@ -21,14 +21,13 @@ GridLib = include("pitter-patter/lib/ggrid")
 Sequence = include("pitter-patter/lib/sequence")
 lattice = require("lattice")
 nb = include("lib/nb/lib/nb")
-if not string.find(package.cpath,"/home/we/dust/code/pitter-patter/lib/") then
-  package.cpath=package.cpath..";/home/we/dust/code/pitter-patter/lib/?.so"
+if not string.find(package.cpath, "/home/we/dust/code/pitter-patter/lib/") then
+  package.cpath = package.cpath .. ";/home/we/dust/code/pitter-patter/lib/?.so"
 end
-json=require("cjson")
+json = require("cjson")
 local musicutil = require("musicutil")
 
 engine.name = "MxSamplez"
-
 
 sequencers = {}
 
@@ -38,7 +37,7 @@ local divisions = {4, 2, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32}
 local divisions_strings = {"4 beats", "2 beats", "1 beat", "1/2", "1/4", "1/8", "1/16", "1/32"}
 
 function init()
-  nb:init() 
+  nb:init()
 
   params_main()
   for i = 1, 4 do sequencers[i] = Sequence:new({id=i, divisions=divisions, divisions_strings=divisions_strings}) end
@@ -308,10 +307,8 @@ function params_main()
 
   params.action_write = function(filename, name)
     print("[params.action_write]", filename, name)
-    local data = {    }
-    for i=1,4 do
-      data["sequence_"..i] = sequencers[i]:marshal()
-    end
+    local data = {}
+    for i = 1, 4 do data["sequence_" .. i] = sequencers[i]:marshal() end
     filename = filename .. ".json"
     local file = io.open(filename, "w+")
     io.output(file)
@@ -330,8 +327,6 @@ function params_main()
     if content == nil then do return end end
     local data = json.decode(content)
     if data == nil then do return end end
-    for i=1,4 do
-      sequencers[i]:unmarshal(data["sequence_"..i])
-    end
+    for i = 1, 4 do sequencers[i]:unmarshal(data["sequence_" .. i]) end
   end
 end

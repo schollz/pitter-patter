@@ -66,9 +66,7 @@ function GGrid:new(args)
   m.grid_width = m.width
   for i = 1, m.height do
     m.visual[i] = {}
-    for j = 1, m.width do
-      m.visual[i][j] = 0
-    end
+    for j = 1, m.width do m.visual[i][j] = 0 end
   end
 
   -- keep track of pressed buttons
@@ -185,7 +183,9 @@ function GGrid:grid_redraw()
   local s = 1
   local e = self.grid_width
   local adj = 0
-  for row = 1, self.height do for col = s, e do if gd[row][col] ~= 0 then self.g:led(col + adj, row, gd[row][col]) end end end
+  for row = 1, self.height do
+    for col = s, e do if gd[row][col] ~= 0 then self.g:led(col + adj, row, gd[row][col]) end end
+  end
   self.g:refresh()
 end
 
