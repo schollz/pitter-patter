@@ -56,8 +56,8 @@ function GGrid:new(args)
 
   m.width = m.g.cols
   m.height = m.g.rows
-  if m.width == nil then m.width = 16 end
-  if m.height == nil then m.height = 8 end
+  if m.width == nil or m.width==0 then m.width = 16 end
+  if m.height == nil or m.height==0 then m.height = 8 end
   m.scroll_y = 0
 
   -- setup visual
@@ -76,7 +76,7 @@ function GGrid:new(args)
   m.grid_refresh = metro.init()
   m.grid_refresh.time = 0.03
   m.grid_refresh.event = function()
-    if m.grid_on then m:grid_redraw() end
+    m:grid_redraw()
   end
   m.grid_refresh:start()
 
@@ -178,8 +178,9 @@ function GGrid:get_visual()
 end
 
 function GGrid:grid_redraw()
-  self.g:all(0)
   local gd = self:get_visual()
+  if not self.grid_on then return end
+  self.g:all(0)
   local s = 1
   local e = self.grid_width
   local adj = 0
