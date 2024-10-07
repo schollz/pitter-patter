@@ -100,8 +100,7 @@ function Sequence:init()
       formatter=function(param)
         return self.divisions_strings[param:get()]
       end
-    }, 
-    {
+    }, {
       id="mute",
       name="mute",
       min=0,
@@ -111,9 +110,8 @@ function Sequence:init()
       default=0,
       formatter=function(param)
         return param:get() == 1 and "muted" or "unmuted"
-      end,
-    },    
-    {
+      end
+    }, {
       id="scale",
       name="scale",
       min=1,
