@@ -162,7 +162,7 @@ function GGrid:get_visual()
     -- show current step
     for i = 1, self.height - 1 do
       local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
-      v = v + 4
+      v = v + 7
       if v > 15 then v = 15 end
       self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
     end
