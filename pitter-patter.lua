@@ -1,4 +1,4 @@
--- pitter-patter v0.0.1
+-- pitter-patter v1.0.0
 --
 --
 -- llllllll.co/t/pitter-patter
@@ -12,11 +12,14 @@
 -- E3: change note pool
 -- K1+E1: change instrument
 -- K1+E2: change direction
+-- K1+E3: change velocity profile
 -- K1: shift
 -- K2: mute
 -- K3: play/stop
--- K1+K2: 
+-- K1+K2: n/a
 -- K1+K3: clear
+--
+
 GridLib = include("pitter-patter/lib/ggrid")
 Sequence = include("pitter-patter/lib/sequence")
 lattice = require("lattice")
