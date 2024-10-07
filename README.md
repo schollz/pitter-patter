@@ -20,6 +20,8 @@ press and make quantized patterns of sequence across four tracks, using a grid o
 - K1 + E3: Change the velocity style
 - K2: toggle mute
 - K3: play/stop the sequence
+- K1 + K2: clear visible
+- K1 + K3: clear all
 
 the supercollider engine uses `mx.samples` which you can optionally install:
 
