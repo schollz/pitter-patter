@@ -113,7 +113,24 @@ function Sequence:init()
       end,
       action=function(v)
         print("scale changed to " .. scale_names[v])
-        self.scale_full = MusicUtil.generate_scale_of_length(24, v, self.note_max)
+        self.scale_full = MusicUtil.generate_scale_of_length(self:get_param("root_note"), self:get_param("scale"),
+                                                             self.note_max)
+      end
+    }, {
+      id="root_note",
+      name="root note",
+      min=12,
+      max=36,
+      exp=false,
+      div=1,
+      default=24,
+      formatter=function(param)
+        return MusicUtil.note_num_to_name(param:get(), true)
+      end,
+      action=function(v)
+        print("root note changed to " .. MusicUtil.note_num_to_name(v, true))
+        self.scale_full = MusicUtil.generate_scale_of_length(self:get_param("root_note"), self:get_param("scale"),
+                                                             self.note_max)
       end
     }, {
       id="velocity",
@@ -549,7 +566,6 @@ function Sequence:note_on(note_index)
     engine.mx_note_on(self.instrument, note, velocity)
   elseif self:get_param("output") == 2 then
     -- midi output
-    -- TODO 
     if self.midi_out_device then self.midi_out_device:note_on(note, velocity, self:get_param("midi_out_channel")) end
   elseif self:get_param("output") == 3 then
     crow.output[1].volts = (note - 60) / 12
