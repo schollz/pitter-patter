@@ -590,6 +590,15 @@ function Sequence:note_on(note_index)
   end
 end
 
+function Sequence:clear_visible()
+  for i = 1, self.sequence_max do
+    for row = 1, 7 do
+      local note_index = (row + self.note_offset - 1) % self.note_limit + 1
+      self.matrix[i][note_index] = 0
+    end
+  end
+end
+
 function Sequence:clear()
   for i = 1, self.sequence_max do
     self.matrix[i] = {}

@@ -16,8 +16,8 @@
 -- K1: shift
 -- K2: mute
 -- K3: play/stop
--- K1+K2: n/a
--- K1+K3: clear
+-- K1+K2: clear current view
+-- K1+K3: clear all 
 --
 
 GridLib = include("pitter-patter/lib/ggrid")
@@ -121,6 +121,8 @@ function key(k, z)
     if not is_shift then
       -- toggle mute for current sequence
       sequencers[params:get("main_sequence")]:set_param("mute", sequencers[params:get("main_sequence")]:get_param("mute") == 0 and 1 or 0)
+    else 
+      sequencers[params:get("main_sequence")]:clear_visible()
     end
   elseif z == 1 and k == 3 then
     if is_shift then
