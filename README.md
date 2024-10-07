@@ -17,9 +17,9 @@ press and make quantized patterns of sequence across four tracks, using a grid o
 - E3: Change the note pool
 - K1 + E1: Change the instrument
 - K1 + E2: Change the clock division
-- K1 + K3: Change the velocity style
-- K2: n/a
-- K3: Play/stop the sequence
+- K1 + E3: Change the velocity style
+- K2: toggle mute
+- K3: play/stop the sequence
 
 the supercollider engine uses `mx.samples` which you can optionally install:
 

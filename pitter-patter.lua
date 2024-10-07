@@ -13,7 +13,7 @@
 -- K1+E1: change instrument
 -- K1+E2: change direction
 -- K1: shift
--- K2:
+-- K2: mute
 -- K3: play/stop
 -- K1+K2: 
 -- K1+K3: clear
@@ -115,6 +115,10 @@ function key(k, z)
   if k == 1 then
     is_shift = z == 1
   elseif z == 1 and k == 2 then
+    if not is_shift then
+      -- toggle mute for current sequence
+      sequencers[params:get("main_sequence")]:set_param("mute", sequencers[params:get("main_sequence")]:get_param("mute") == 0 and 1 or 0)
+    end
   elseif z == 1 and k == 3 then
     if is_shift then
       sequencers[params:get("main_sequence")]:clear()
@@ -153,6 +157,11 @@ function redraw()
   screen.move(0, 5)
   -- show the current sequence
   screen.text("sequence " .. params:get("main_sequence"))
+  if sequencers[params:get("main_sequence")]:get_param("mute")==1 then 
+    screen.move(0,5+9)
+    screen.level(5)
+    screen.text("muted")
+  end
   local instrument_string = sequencers[params:get("main_sequence")]:get_param_str("instrument")
   -- get length of string
   screen.move(128, 5)

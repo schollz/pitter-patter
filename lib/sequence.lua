@@ -100,7 +100,20 @@ function Sequence:init()
       formatter=function(param)
         return self.divisions_strings[param:get()]
       end
-    }, {
+    }, 
+    {
+      id="mute",
+      name="mute",
+      min=0,
+      max=1,
+      exp=false,
+      div=1,
+      default=0,
+      formatter=function(param)
+        return param:get() == 1 and "muted" or "unmuted"
+      end,
+    },    
+    {
       id="scale",
       name="scale",
       min=1,
@@ -550,6 +563,7 @@ function Sequence:update(division, beat)
 end
 
 function Sequence:note_on(note_index)
+  if self:get_param("mute") == 1 then do return end end
   if self:get_param("probability") < math.random() then do return end end
   local note = self.scale_full[note_index]
   table.insert(self.notes_on, {self.instrument, note})
