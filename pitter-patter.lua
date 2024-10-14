@@ -33,6 +33,7 @@ local musicutil = require("musicutil")
 engine.name = "MxSamplez"
 
 sequencers = {}
+last_cpu = 0
 
 debounce_show_grid_time = 30
 debounce_show_grid = debounce_show_grid_time
@@ -65,6 +66,16 @@ function init()
       division=division
     })
   end
+
+
+  -- cpu tracker 
+  cpu_tracker = poll.set("cpu_avg") -- create a poll to detect pitch of the left input
+  cpu_tracker.callback = function(x)
+    if x > 0 then -- poll returns `-1` without a signal present
+      last_cpu = x
+    end
+  end
+  cpu_tracker:start()
 
   clock.run(function()
     clock.sleep(0.1)
@@ -158,6 +169,9 @@ function redraw()
       end
     end
   end
+  screen.level(util.round(util.linlin(0,100,0,15,last_cpu)))
+  screen.move(0,5+9)
+  screen.text(string.format("%2.0f",last_cpu) .. "%")
   screen.level(10)
   screen.move(0, 5)
   -- show the current sequence
