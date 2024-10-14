@@ -318,7 +318,7 @@ function Sequence:init()
       max=10,
       exp=false,
       div=0.1,
-      default=5,
+      default=2,
       formatter=function(param)
         return param:get() .. " s"
       end,
