@@ -48,6 +48,8 @@ function GGrid:new(args)
   m.grid_on = args.grid_on == nil and true or args.grid_on
 
   -- initiate the grid
+  local midigrid=util.file_exists(_path.code.."midigrid")
+  local grid=midigrid and include "midigrid/lib/mg_128" or grid
   m.g = grid.connect()
   m.g.key = function(x, y, z)
     if m.grid_on then m:grid_key(x, y, z) end
@@ -74,7 +76,7 @@ function GGrid:new(args)
 
   -- grid refreshing
   m.grid_refresh = metro.init()
-  m.grid_refresh.time = 0.03
+  m.grid_refresh.time = midigrid and 0.12 or 0.03
   m.grid_refresh.event = function()
     m:grid_redraw()
   end
