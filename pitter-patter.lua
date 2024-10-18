@@ -1,4 +1,4 @@
--- pitter-patter v1.0.1
+-- pitter-patter v1.0.2
 --
 --
 -- llllllll.co/t/pitter-patter
