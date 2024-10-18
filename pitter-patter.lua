@@ -56,7 +56,7 @@ function init()
 
   for _, division in ipairs(divisions) do
     local beat = 1
-    sequencer:new_pattern({
+    sequencer:new_sprocket({
       action=function(t)
         if params:get("main_play") == 1 then
           for i = 1, 4 do sequencers[i]:update(division, beat) end
