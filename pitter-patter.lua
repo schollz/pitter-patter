@@ -56,7 +56,7 @@ function init()
 
   for _, division in ipairs(divisions) do
     local beat = 1
-    sequencer:new_pattern({
+    sequencer:new_sprocket({
       action=function(t)
         if params:get("main_play") == 1 then
           for i = 1, 4 do sequencers[i]:update(division, beat) end
@@ -170,7 +170,7 @@ function redraw()
     end
   end
   screen.level(util.round(util.linlin(0,100,0,15,last_cpu)))
-  screen.move(0,5+9)
+  screen.move(110,5+9)
   screen.text(string.format("%2.0f",last_cpu) .. "%")
   screen.level(10)
   screen.move(0, 5)
