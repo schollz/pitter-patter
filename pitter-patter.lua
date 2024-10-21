@@ -314,14 +314,6 @@ function params_main()
             params:hide(pram.id)
         end
         if pram.action then
-            local random_step = steps[math.random(1, #steps)]
-            print("removing note", random_step[1], random_step[2])
-            self.matrix[random_step[1]][random_step[2]] = 0
-            local random_i = math.random(1, self.sequence_max)
-            local random_j = math.random(1, self.note_max)
-            self.matrix[random_i][random_j] = 1
-            print("adding note", random_i, random_j)
-
             params:set_action("main_" .. pram.id, pram.action)
         end
         -- params:set_action(pram.id, function(v)
