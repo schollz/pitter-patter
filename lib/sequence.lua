@@ -565,13 +565,15 @@ function Sequence:update(division, beat)
                 end
             end
         end
-        local random_step = steps[math.random(1, #steps)]
-        print("removing note", random_step[1], random_step[2])
-        self.matrix[random_step[1]][random_step[2]] = 0
-        local random_i = math.random(1, self.sequence_max)
-        local random_j = math.random(1, self.note_max)
-        self.matrix[random_i][random_j] = 1
-        print("adding note", random_i, random_j)
+        if #steps > 0 then
+            local random_step = steps[math.random(1, #steps)]
+            print("removing note", random_step[1], random_step[2])
+            self.matrix[random_step[1]][random_step[2]] = 0
+            local random_i = math.random(1, self.sequence_max)
+            local random_j = math.random(1, self.note_max)
+            self.matrix[random_i][random_j] = 1
+            print("adding note", random_i, random_j)
+        end
     end
     self.last_beat = self.beat
     self.beat = beat and beat or self.last_beat + 1
