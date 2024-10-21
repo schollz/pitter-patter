@@ -15,10 +15,14 @@ Engine_MxSamplez : CroneEngine {
 		// <MxSamplez2>
 		mx=MxSamplez(Server.default,100,0);
 
-		this.addCommand("mx_note_on","sff", { arg msg;
-			mx.noteOn(msg[1].asString,msg[2],msg[3]);
+		this.addCommand("mx_note_on","ssff", { arg msg;
+			mx.noteOn(msg[1].asString,msg[2].asString,msg[3],msg[4]);
 		});
 
+		this.addCommand("mx_set_instrument","ss", { arg msg;
+			mx.setInstrument(msg[1].asString,msg[2].asString);
+		});
+		
 		this.addCommand("mx_note_onfx","sffffffffffffff", { arg msg;
 
 			mx.noteOnFX(msg[1].asString,msg[2],msg[3],
@@ -39,11 +43,11 @@ Engine_MxSamplez : CroneEngine {
 		});
         
 		this.addCommand("mx_note_off","sf", { arg msg;
-			mx.noteOff(msg[1].asString,msg[2]);
+			mx.noteOff(msg[1].asString,msg[3]);
 		});
 
-		this.addCommand("mx_set","ssf", { arg msg;
-			mx.setParam(msg[1].asString,msg[2].asString,msg[3]);
+		this.addCommand("mx_set","sssf", { arg msg;
+			mx.setParam(msg[1].asString,msg[2].asString,msg[3].asString,msg[4]);
 		});
 
 		this.addCommand("MxSamplez_sustain", "si", { arg msg;
