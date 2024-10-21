@@ -76,12 +76,20 @@ MxSamplez {
 		}.play;
 	}
 
-	setParam {
-		arg folder,key,value;
-		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+	setInstrument {
+		arg id,folder;
+		if (ins.at(id).notNil,{
+			ins.at(id).free;
 		});
-		ins.at(folder).setParam(key,value);
+		ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+	}
+
+	setParam {
+		arg id,folder,key,value;
+		if (ins.at(id).isNil,{
+			ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+		});
+		ins.at(id).setParam(key,value);
 	}
 
 	setGlobal {
@@ -91,47 +99,47 @@ MxSamplez {
 	}
 
 	noteOn {
-		arg folder,note,velocity;
-		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+		arg id,folder,note,velocity;
+		if (ins.at(id).isNil,{
+			ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
 		});
-		["note_on",folder,note,velocity].postln;
-		ins.at(folder).noteOn(note,velocity);
+		["note_on",id,note,velocity].postln;
+		ins.at(id).noteOn(note,velocity);
 	}
 
 	setSustain {
-		arg folder, on;
-		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+		arg id, folder, on;
+		if (ins.at(id).isNil,{
+			ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
 		});
-		ins.at(folder).sustain(on);
+		ins.at(id).sustain(on);
 	}
 
 	setSustenuto {
-		arg folder, on;
-		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+		arg id, folder, on;
+		if (ins.at(id).isNil,{
+			ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
 		});
-		ins.at(folder).sostenuto(on);
+		ins.at(id).sostenuto(on);
 	}
 
 	noteOnFX {
-		arg folder,note,velocity,
+		arg id,folder,note,velocity,
 		amp,pan,
 		attack,decay,sustain,release,
 		delaysend,reverbsend,
 		lpf,lpfrq,hpf,hpfrq;
-		if (ins.at(folder).isNil,{
-			ins.put(folder,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
+		if (ins.at(id).isNil,{
+			ins.put(id,MxSamplezInstrument(server,folder,maxSamples,busOut,busDelay.index,busReverb.index));
 		});
-		ins.at(folder).noteOnFX(note,velocity,amp,pan,attack,decay,sustain,release,delaysend,reverbsend,lpf,lpfrq,hpf,hpfrq);
+		ins.at(id).noteOnFX(note,velocity,amp,pan,attack,decay,sustain,release,delaysend,reverbsend,lpf,lpfrq,hpf,hpfrq);
 	}
 
 	noteOff {
-		arg folder,note;
-		if (ins.at(folder).notNil,{
-			ins.at(folder).noteOff(note);
-			["note_off",folder,note].postln;
+		arg id,note;
+		if (ins.at(id).notNil,{
+			ins.at(id).noteOff(note);
+			["note_off",id,note].postln;
 		});
 	}
 
