@@ -92,9 +92,12 @@ end
 
 function GGrid:key_press(row, col, on)
   local flipped_row = self.height - row
+  local ct = clock.get_beats()*clock.get_beat_sec()
+  local time_on = 0
   if on then
-    self.pressed_buttons[row .. "," .. col] = true
+    self.pressed_buttons[row .. "," .. col] = ct
   else
+    time_on = ct - self.pressed_buttons[row .. "," .. col]    
     self.pressed_buttons[row .. "," .. col] = nil
   end
   if on and row == self.height and col < self.width - 1 then

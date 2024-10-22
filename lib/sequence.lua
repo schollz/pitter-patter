@@ -36,6 +36,7 @@ function Sequence:init()
     self.matrix = matrix
     self.notes_to_ghost = {}
     self.step = 1
+    self.state = "sequence" -- sequence, chain
     self.step_last = 1
     self.step_next = 1
     self.movement = 1
