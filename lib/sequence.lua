@@ -120,15 +120,17 @@ function Sequence:init()
         exp = false,
         div = 1,
         default = 0,
+        -- default = self.id==1 and 1 or 0,
         formatter = function(param)
             return param:get() == 0 and "no" or "yes"
         end,
         action = function(v)
             if v == 1 then
                 self:clear()
+                local density = math.random(90,95)/100
                 for i = 1, self.sequence_max do
-                    for j = 1, self.note_max do
-                        if math.random() > 0.9 then
+                    for j = util.round(self.note_max*1/4), util.round(self.note_max*3/4) do
+                        if math.random() > density then
                             matrix[i][j] = 1
                         end
                     end
