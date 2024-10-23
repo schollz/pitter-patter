@@ -12,7 +12,7 @@
 -- E3: change note pool
 -- K1+E1: change instrument
 -- K1+E2: change direction
--- K1+E3: change velocity profile
+-- K1+E3: change length
 -- K1: shift
 -- K2: mute
 -- K3: play/stop
