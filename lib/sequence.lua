@@ -34,9 +34,9 @@ function Sequence:init()
   self.matrix_sequence_m = {}
   for i = 1, 16 do self.matrix_sequence_m[i] = 0 end
   self.matrix_sequence_m[1] = 1
-  self.matrix_sequence_m[2] = 1
-  self.matrix_sequence_m[3] = 2
-  self.matrix_sequence_m[4] = 2
+  --   self.matrix_sequence_m[2] = 1
+  --   self.matrix_sequence_m[3] = 2
+  --   self.matrix_sequence_m[4] = 2
   self.matrix_sequence_cur = 1
   self.matrix_sequence_ind = 1
   self.matrix_sequence_step = 0
@@ -48,7 +48,7 @@ function Sequence:init()
   self.matrix = matrix
   self.notes_to_ghost = {}
   self.step = 1
-  self.state = 1 -- 0=sequence, 1=chain
+  self.state = 0 -- 0=sequence, 1=chain
   self.step_last = 1
   self.step_next = 1
   self.movement = 1
@@ -82,6 +82,49 @@ function Sequence:init()
   end
   tab.print(instrument_folders)
   self.matrix_previous = 1
+  -- engine actions
+  local engine_actions = {}
+  engine_actions["db"] = function(v)
+    engine.mx_set(self.id, self.instrument, "amp", util.dbamp(v))
+  end
+  engine_actions["pan"] = function(v)
+    engine.mx_set(self.id, self.instrument, "pan", v)
+  end
+  engine_actions["attack"] = function(v)
+    engine.mx_set(self.id, self.instrument, "attack", v)
+  end
+  engine_actions["decay"] = function(v)
+    engine.mx_set(self.id, self.instrument, "decay", v)
+  end
+  engine_actions["sustain"] = function(v)
+    engine.mx_set(self.id, self.instrument, "sustain", v)
+  end
+  engine_actions["release"] = function(v)
+    engine.mx_set(self.id, self.instrument, "release", v)
+  end
+  engine_actions["fadetime"] = function(v)
+    engine.mx_set(self.id, self.instrument, "fadetime", v)
+  end
+  engine_actions["delaysend"] = function(v)
+    print("setting delay send", v)
+    engine.mx_set(self.id, self.instrument, "delaysend", v)
+  end
+  engine_actions["reverbsend"] = function(v)
+    engine.mx_set(self.id, self.instrument, "reverbsend", v)
+  end
+  engine_actions["lpf"] = function(v)
+    engine.mx_set(self.id, self.instrument, "lpf", v)
+  end
+  engine_actions["lpfrq"] = function(v)
+    engine.mx_set(self.id, self.instrument, "lpfrq", v)
+  end
+  engine_actions["hpf"] = function(v)
+    engine.mx_set(self.id, self.instrument, "hpf", v)
+  end
+  engine_actions["hpfrq"] = function(v)
+    engine.mx_set(self.id, self.instrument, "hpfrq", v)
+  end
+
   -- setup parameters
   local params_menu = {
     {
@@ -102,6 +145,12 @@ function Sequence:init()
           self.instrument = _path.audio .. "mx.samples/" .. instrument_folders[v - 1]
         end
         engine.mx_set_instrument(self.id, self.instrument)
+        -- update parameters for synOutput
+        local synoutput_params = {
+          "db", "pan", "attack", "decay", "sustain", "release", "fadetime", "delaysend", "reverbsend", "lpf", "lpfrq",
+          "hpf", "hpfrq"
+        }
+        for _, v in ipairs(synoutput_params) do engine_actions[v](self:get_param(v)) end
       end
     }, -- division
     {
@@ -309,9 +358,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get() .. " dB"
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "amp", util.dbamp(v))
-      end
+      action=engine_actions["db"]
     }, {
       id="pan",
       name="pan",
@@ -323,79 +370,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get()
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "pan", v)
-      end
-    }, {
-      id="attack",
-      name="attack",
-      min=0.01,
-      max=1,
-      exp=true,
-      div=0.01,
-      default=0.01,
-      formatter=function(param)
-        return param:get() .. " s"
-      end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "attack", v)
-      end
-    }, {
-      id="decay",
-      name="decay",
-      min=0.1,
-      max=5,
-      exp=true,
-      div=0.1,
-      default=0.1,
-      formatter=function(param)
-        return param:get() .. " s"
-      end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "decay", v)
-      end
-    }, {
-      id="sustain",
-      name="sustain",
-      min=0,
-      max=1,
-      exp=false,
-      div=0.01,
-      default=1,
-      formatter=function(param)
-        return param:get()
-      end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "sustain", v)
-      end
-    }, {
-      id="release",
-      name="release",
-      min=0.1,
-      max=10,
-      exp=false,
-      div=0.1,
-      default=2,
-      formatter=function(param)
-        return param:get() .. " s"
-      end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "release", v)
-      end
-    }, {
-      id="fadetime",
-      name="fadetime",
-      min=0.1,
-      max=5,
-      exp=true,
-      div=0.1,
-      default=1,
-      formatter=function(param)
-        return param:get()
-      end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "fadetime", v)
-      end
+      action=engine_actions["pan"]
     }, {
       id="delaysend",
       name="delay send",
@@ -407,9 +382,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get()
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "delaysend", v)
-      end
+      action=engine_actions["delaysend"]
     }, {
       id="reverbsend",
       name="reverb send",
@@ -421,9 +394,67 @@ function Sequence:init()
       formatter=function(param)
         return param:get()
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "reverbsend", v)
-      end
+      action=engine_actions["reverbsend"]
+    }, {
+      id="attack",
+      name="attack",
+      min=0.01,
+      max=1,
+      exp=true,
+      div=0.01,
+      default=0.01,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=engine_actions["attack"]
+    }, {
+      id="decay",
+      name="decay",
+      min=0.1,
+      max=5,
+      exp=true,
+      div=0.1,
+      default=0.1,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=engine_actions["decay"]
+    }, {
+      id="sustain",
+      name="sustain",
+      min=0,
+      max=1,
+      exp=false,
+      div=0.01,
+      default=1,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=engine_actions["sustain"]
+    }, {
+      id="release",
+      name="release",
+      min=0.1,
+      max=10,
+      exp=false,
+      div=0.1,
+      default=2,
+      formatter=function(param)
+        return param:get() .. " s"
+      end,
+      action=engine_actions["release"]
+    }, {
+      id="fadetime",
+      name="fadetime",
+      min=0.1,
+      max=5,
+      exp=true,
+      div=0.1,
+      default=1,
+      formatter=function(param)
+        return param:get()
+      end,
+      action=engine_actions["fadetime"]
     }, {
       id="lpf",
       name="low pass filter",
@@ -435,9 +466,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get() .. " Hz"
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "lpf", v)
-      end
+      action=engine_actions["lpf"]
     }, {
       id="lpfrq",
       name="low pass filter resonance",
@@ -449,9 +478,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get()
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "lpfrq", v)
-      end
+      action=engine_actions["lpfrq"]
     }, {
       id="hpf",
       name="high pass filter",
@@ -463,9 +490,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get() .. " Hz"
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "hpf", v)
-      end
+      action=engine_actions["hpf"]
     }, {
       id="hpfrq",
       name="high pass filter resonance",
@@ -477,9 +502,7 @@ function Sequence:init()
       formatter=function(param)
         return param:get()
       end,
-      action=function(v)
-        engine.mx_set(self.id, self.instrument, "hpfrq", v)
-      end
+      action=engine_actions["hpfrq"]
     }
   }
 
