@@ -17,7 +17,7 @@ press and make quantized patterns of sequence across four tracks, using a grid o
 - E3: Change the note pool
 - K1 + E1: Change the instrument
 - K1 + E2: Change the clock division
-- K1 + E3: Change the velocity style
+- K1 + E3: Change the length
 - K2: toggle mute
 - K3: play/stop the sequence
 - K1 + K2: clear visible
@@ -33,11 +33,23 @@ and, once installed, download any sound packs you want which you can then use wi
 
 ### grid controls
 
+#### note mode
+
 the last row of the grid is a keyboard.
 
-the last row, last column of the grid shifts to the next octave (and aligns the octave).
+hold the last row, last column of the grid to shift to the next octave (and aligns the octave).
 
 all the other buttons enter in notes (press and hold two to create ranges).
+
+press the last row, last column to enter "sequencer" mode.
+
+#### sequence mode
+
+use the bottom row to select a sequence.
+
+use the other rows to create a sequence.
+
+press the last row, last column to enter "note" mode.
 
 ## install
 
