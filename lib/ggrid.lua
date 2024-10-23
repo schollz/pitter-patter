@@ -48,8 +48,8 @@ function GGrid:new(args)
   m.grid_on = args.grid_on == nil and true or args.grid_on
 
   -- initiate the grid
-  local midigrid=util.file_exists(_path.code.."midigrid")
-  local grid=midigrid and include "midigrid/lib/mg_128" or grid
+  local midigrid = util.file_exists(_path.code .. "midigrid")
+  local grid = midigrid and include "midigrid/lib/mg_128" or grid
   m.g = grid.connect()
   m.g.key = function(x, y, z)
     if m.grid_on then m:grid_key(x, y, z) end
@@ -58,8 +58,8 @@ function GGrid:new(args)
 
   m.width = m.g.cols
   m.height = m.g.rows
-  if m.width == nil or m.width==0 then m.width = 16 end
-  if m.height == nil or m.height==0 then m.height = 8 end
+  if m.width == nil or m.width == 0 then m.width = 16 end
+  if m.height == nil or m.height == 0 then m.height = 8 end
   m.scroll_y = 0
 
   -- setup visual
@@ -92,12 +92,12 @@ end
 
 function GGrid:key_press(row, col, on)
   local flipped_row = self.height - row
-  local ct = clock.get_beats()*clock.get_beat_sec()
+  local ct = clock.get_beats() * clock.get_beat_sec()
   local time_on = 0
   if on then
     self.pressed_buttons[row .. "," .. col] = ct
   else
-    time_on = ct - self.pressed_buttons[row .. "," .. col]    
+    time_on = ct - self.pressed_buttons[row .. "," .. col]
     self.pressed_buttons[row .. "," .. col] = nil
   end
   if on and row == self.height and col < self.width - 1 then
@@ -145,39 +145,54 @@ function GGrid:get_visual()
   for row = 1, self.height do for col = 1, self.width do self.visual[row][col] = 0 end end
 
   -- illuminate currently pressed button
-  for k, _ in pairs(self.pressed_buttons) do
+  for k, v in pairs(self.pressed_buttons) do
     local row, col = k:match("(%d+),(%d+)")
+    row = tonumber(row)
+    col = tonumber(col)
+    if row == self.height and col == self.width and v ~= 1234 then
+      local ct = clock.get_beats() * clock.get_beat_sec()
+      if ct - v > 0.5 then
+        print("time on: ", ct - v)
+        self.pressed_buttons[k] = 1234
+        self.sequencer.state = 1 - self.sequencer.state
+      end
+    end
     self.visual[tonumber(row)][tonumber(col)] = 15
   end
 
   -- illuminate sequence
   if self.sequencer ~= nil then
-    -- figure out which of the 'width' steps to show based on 
-    -- self.sequencer.step and self.width 
-    local step_offset = math.floor((self.sequencer.step - 1) / self.width) * self.width
-    for i = 1, self.width do
-      for j = 1, self.height - 1 do
-        local note_index = self.sequencer:get_note_index(self.height - j)
-        if self.sequencer.matrix[i + step_offset][note_index] > 0 then
-          self.visual[j][i] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
+    -- show sequencer 
+    if self.sequencer.state == 0 then
+      -- figure out which of the 'width' steps to show based on 
+      -- self.sequencer.step and self.width 
+      local step_offset = math.floor((self.sequencer.step - 1) / self.width) * self.width
+      for i = 1, self.width do
+        for j = 1, self.height - 1 do
+          local note_index = self.sequencer:get_note_index(self.height - j)
+          if self.sequencer.matrix[i + step_offset][note_index] > 0 then
+            self.visual[j][i] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
+          end
         end
       end
-    end
 
-    -- show current step
-    for i = 1, self.height - 1 do
-      local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
-      v = v + 7
-      if v > 15 then v = 15 end
-      self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
-    end
+      -- show current step
+      for i = 1, self.height - 1 do
+        local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
+        v = v + 7
+        if v > 15 then v = 15 end
+        self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
+      end
 
-    -- show keyboard
-    for col = 1, self.width - 1 do
-      local note_index = self.sequencer:get_note_index(col)
-      self.visual[self.height][col] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
-    end
+      -- show keyboard
+      for col = 1, self.width - 1 do
+        local note_index = self.sequencer:get_note_index(col)
+        self.visual[self.height][col] = 12 - (self.sequencer.scale_full[note_index] % 12) + 2
+      end
 
+    else
+
+    end
   end
   return self.visual
 end
