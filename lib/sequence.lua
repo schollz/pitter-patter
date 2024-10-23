@@ -506,7 +506,7 @@ function Sequence:init()
     }
   }
 
-  params:add_group("SEQUENCE " .. self.id, #params_menu)
+  params:add_group("TRACK " .. self.id, #params_menu)
   for _, pram in ipairs(params_menu) do
     pram.id = "sequence" .. self.id .. "_" .. pram.id
     params:add{

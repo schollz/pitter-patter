@@ -177,7 +177,7 @@ function redraw()
   screen.level(10)
   screen.move(0, 5)
   -- show the current sequence
-  screen.text("sequence " .. params:get("main_sequence") .. ":" ..
+  screen.text("track " .. params:get("main_sequence") .. ", seq " ..
                   sequencers[params:get("main_sequence")]:get_param("sequence"))
   if sequencers[params:get("main_sequence")]:get_param("mute") == 1 then
     screen.move(0, 5 + 9)
@@ -241,7 +241,7 @@ function params_main()
   local params_menu = {
     {
       id="sequence",
-      name="sequence select",
+      name="track select",
       min=1,
       max=4,
       exp=false,

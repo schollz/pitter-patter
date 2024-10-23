@@ -165,7 +165,7 @@ function GGrid:get_visual()
       local ct = clock.get_beats() * clock.get_beat_sec()
       if ct - v > 0.75 then
         print("time on: ", ct - v)
-        self.pressed_buttons[k] = ct - 0.5
+        self.pressed_buttons[k] = ct - 0.25
         self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
       end
     end
