@@ -30,6 +30,17 @@ function Sequence:init()
             matrix[i][j] = 0
         end
     end
+    local matrices = {}
+    for k = 1, 7 do
+        matrices[k] = {}
+        for i = 1, self.sequence_max do
+            matrices[k][i] = {}
+            for j = 1, self.note_max do
+                matrix[k][i][j] = 0
+            end
+        end
+    end
+    self.matrices = matrices
 
     self.velocity_profiles = {{1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0}, {1, 0, 1, 0, 1, 0},
                               {1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 0, 0, 1, 0, 0}, {1, 1, 0, 1, 1, 0, 1, 0}}
@@ -69,7 +80,7 @@ function Sequence:init()
         table.insert(instrument_options, name)
     end
     tab.print(instrument_folders)
-
+    self.matrix_previous = 1
     -- setup parameters
     local params_menu = {{
         id = "instrument",
@@ -103,6 +114,29 @@ function Sequence:init()
             return self.divisions_strings[param:get()]
         end
     }, {
+        id = "sequence",
+        name = "sequence",
+        min = 1,
+        max = 7,
+        exp = false,
+        div = 1,
+        default = 1,
+        action = function(k)
+            -- save current matrix 
+            for i = 1, self.sequence_max do
+                for j = 1, self.note_max do
+                    self.matrices[self.matrix_previous][i][j] = self.matrix[i][j]
+                end
+            end
+            -- load new matrix
+            for i = 1, self.sequence_max do
+                for j = 1, self.note_max do
+                    self.matrix[i][j] = self.matrices[k][i][j]
+                end
+            end
+            self.matrix_previous = k
+        end
+    }, {
         id = "mute",
         name = "mute",
         min = 0,
@@ -128,9 +162,9 @@ function Sequence:init()
         action = function(v)
             if v == 1 then
                 self:clear()
-                local density = math.random(90,95)/100
+                local density = math.random(90, 95) / 100
                 for i = 1, self.sequence_max do
-                    for j = util.round(self.note_max*1/4), util.round(self.note_max*3/4) do
+                    for j = util.round(self.note_max * 1 / 4), util.round(self.note_max * 3 / 4) do
                         if math.random() > density then
                             matrix[i][j] = 1
                         end
