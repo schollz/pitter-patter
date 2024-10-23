@@ -41,6 +41,12 @@ function Sequence:init()
         end
     end
     self.matrices = matrices
+    self.matrix_sequence_m = {}
+    for i = 1, self.sequence_max do
+        self.matrix_sequence_m[i] = 0
+    end
+    self.matrix_sequence_m[1] = 1
+    self.matrix_sequence_cur = 1
 
     self.velocity_profiles = {{1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0}, {1, 0, 1, 0, 1, 0},
                               {1, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1}, {0, 0, 1, 0, 0, 1, 0, 0}, {1, 1, 0, 1, 1, 0, 1, 0}}
@@ -611,6 +617,22 @@ function Sequence:update(division, beat)
             self.matrix[random_i][random_j] = 1
             print("adding note", random_i, random_j)
         end
+    end
+    if ((beat - 1) % self:get_param("limit")) + 1 == 1 then
+        -- move to next sequence
+        local cur = 1
+        local next = self.matrix_sequence_cur
+        for i = 1, self.sequence_max do
+            next = next + 1
+            if next > self.sequence_max then
+                next = 1
+            end
+            if self.matrix_sequence_m[next] > 0 then
+                cur = next
+                break
+            end
+        end
+        self.matrix_sequence_cur = cur
     end
     self.last_beat = self.beat
     self.beat = beat and beat or self.last_beat + 1
