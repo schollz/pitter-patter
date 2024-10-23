@@ -195,8 +195,8 @@ function Sequence:init()
         return param:get() == 1 and "muted" or "unmuted"
       end
     }, {
-      id="generate",
-      name="generate",
+      id="randomize",
+      name="randomize",
       min=0,
       max=1,
       exp=false,
@@ -204,7 +204,7 @@ function Sequence:init()
       default=0,
       -- default = self.id==1 and 1 or 0,
       formatter=function(param)
-        return param:get() == 0 and "no" or "yes"
+        return param:get() == 0 and "turn e3" or "randomized!"
       end,
       action=function(v)
         if v == 1 then
@@ -216,6 +216,22 @@ function Sequence:init()
             end
           end
         end
+        clock.run(function()
+          clock.sleep(1)
+          self:set_param("randomize", 0)
+        end)
+      end
+    }, {
+      id="evolve",
+      name="evolve",
+      min=0,
+      max=1,
+      exp=false,
+      div=1,
+      default=0,
+      -- default = self.id==1 and 1 or 0,
+      formatter=function(param)
+        return param:get() == 0 and "no" or "yes"
       end
     }, {
       id="scale",
@@ -606,7 +622,7 @@ end
 function Sequence:update(division, beat)
   if division ~= self.divisions[self:get_param("division")] then do return end end
   -- if generating then remove a random note and replace with a new note
-  if self:get_param("generate") == 1 and math.random() > 0.9 then
+  if self:get_param("evolve") == 1 and math.random() > 0.9 then
     -- find all the steps
     local steps = {}
     for i = 1, self.sequence_max do

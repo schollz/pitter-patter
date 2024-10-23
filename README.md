@@ -23,6 +23,8 @@ press and make quantized patterns of sequence across four tracks, using a grid o
 - K1 + K2: clear visible
 - K1 + K3: clear all
 
+fun things: goto `TRACK X` and randomize with `randomize` parameter and have it evolve with `evolve` parameter.
+
 the supercollider engine uses `mx.samples` which you can optionally install:
 
 ```shell
@@ -31,9 +33,9 @@ the supercollider engine uses `mx.samples` which you can optionally install:
 
 and, once installed, download any sound packs you want which you can then use with pitter-patter.
 
-### grid controls
+## grid controls
 
-#### note mode
+### note mode
 
 the last row of the grid is a keyboard.
 
@@ -43,7 +45,7 @@ all the other buttons enter in notes (press and hold two to create ranges).
 
 press the last row, last column to enter "sequencer" mode.
 
-#### sequence mode
+### sequence mode
 
 use the bottom row to select a sequence.
 

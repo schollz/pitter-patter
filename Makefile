@@ -1,0 +1,4 @@
+format:
+	lua-format -i --indent-width=2 --column-limit=120 --no-keep-simple-function-one-line --no-spaces-around-equals-in-field --no-spaces-inside-table-braces --no-spaces-inside-functiondef-parens lib/sequence.lua
+	lua-format -i --indent-width=2 --column-limit=120 --no-keep-simple-function-one-line --no-spaces-around-equals-in-field --no-spaces-inside-table-braces --no-spaces-inside-functiondef-parens lib/ggrid.lua
+	lua-format -i --indent-width=2 --column-limit=120 --no-keep-simple-function-one-line --no-spaces-around-equals-in-field --no-spaces-inside-table-braces --no-spaces-inside-functiondef-parens pitter-patter.lua
