@@ -196,7 +196,20 @@ function GGrid:get_visual()
       end
 
     else
+      -- show all the steps
+      for i = 1, self.width do
+        local v = self.sequencer.matrix_sequence_m[i]
+        if v > 0 and v < self.height then self.visual[v][i] = self.sequencer.matrix_sequence_cur == i and 10 or 5 end
+      end
+      for i = 1, self.height - 1 do
+        local v = self.visual[i][self.sequencer.matrix_sequence_cur]
+        v = v + 5
+        if v > 15 then v = 15 end
+        self.visual[i][self.sequencer.matrix_sequence_cur] = v
 
+      end
+      -- sohw the current sequencer
+      self.visual[self.height][self.sequencer:get_param("sequence")] = 15
     end
   end
   return self.visual

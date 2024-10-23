@@ -23,7 +23,7 @@ function Sequence:init()
     for j = 1, self.note_max do matrix[i][j] = 0 end
   end
   local matrices = {}
-  for k = 1, 7 do
+  for k = 1, 16 do
     matrices[k] = {}
     for i = 1, self.sequence_max do
       matrices[k][i] = {}
@@ -32,9 +32,12 @@ function Sequence:init()
   end
   self.matrices = matrices
   self.matrix_sequence_m = {}
-  for i = 1, self.sequence_max do self.matrix_sequence_m[i] = 0 end
+  for i = 1, 16 do self.matrix_sequence_m[i] = 0 end
   self.matrix_sequence_m[1] = 1
+  self.matrix_sequence_m[2] = 4
+  self.matrix_sequence_m[4] = 2
   self.matrix_sequence_cur = 1
+  self.matrix_sequence_step = 0
 
   self.velocity_profiles = {
     {1, 1, 1, 1, 1, 1, 1, 1}, {1, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0}, {1, 0, 1, 0, 1, 0},
@@ -43,7 +46,7 @@ function Sequence:init()
   self.matrix = matrix
   self.notes_to_ghost = {}
   self.step = 1
-  self.state = 0 -- sequence, chain
+  self.state = 1 -- sequence, chain
   self.step_last = 1
   self.step_next = 1
   self.movement = 1
@@ -585,18 +588,15 @@ function Sequence:update(division, beat)
     end
   end
   if ((beat - 1) % self:get_param("limit")) + 1 == 1 then
-    -- move to next sequence
-    local cur = 1
-    local next = self.matrix_sequence_cur
-    for i = 1, self.sequence_max do
-      next = next + 1
-      if next > self.sequence_max then next = 1 end
-      if self.matrix_sequence_m[next] > 0 then
-        cur = next
-        break
-      end
+    self.matrix_sequence_step = self.matrix_sequence_step + 1
+    local seq = {}
+    for i = 1, 16 do if self.matrix_sequence_m[i] > 0 then table.insert(seq, i) end end
+
+    if #seq == 0 then
+      self.matrix_sequence_cur = 1
+    else
+      self.matrix_sequence_cur = seq[(self.matrix_sequence_step - 1) % #seq + 1]
     end
-    self.matrix_sequence_cur = cur
   end
   self.last_beat = self.beat
   self.beat = beat and beat or self.last_beat + 1
