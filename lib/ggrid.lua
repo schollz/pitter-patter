@@ -100,43 +100,47 @@ function GGrid:key_press(row, col, on)
     time_on = ct - self.pressed_buttons[row .. "," .. col]
     self.pressed_buttons[row .. "," .. col] = nil
   end
-  if on and row == self.height and col < self.width - 1 then
-    -- toggle sequence from keyboard
-    self.sequencer:toggle_note(col)
-  elseif on and row < self.height then
-    -- check if other buttons are pressed
-    local row_other = nil
-    local col_other = nil
-    for k, _ in pairs(self.pressed_buttons) do
-      local r, c = k:match("(%d+),(%d+)")
-      r, c = tonumber(r), tonumber(c)
-      if not (r == row and c == col) and r < self.height then
-        row_other = r
-        col_other = c
-        break
-      end
-    end
-    if row_other ~= nil and col_other ~= nil then
-      local flipped_row_other = self.height - row_other
-      -- toggle range 
-      -- toggle each position between flipped_row_other,col_other and flipped_row,col
-      for i, coord in ipairs(get_line_coordinates(col_other, flipped_row_other, col, flipped_row)) do
-        print(i, coord[1], coord[2])
-        if i > 1 then
-          local x, y = coord[1], coord[2]
-          print(x, y)
-          local step_index = (x) + math.floor((self.sequencer.step - 1) / 16) * 16
-          self.sequencer:toggle_pos(step_index, y) -- Use flipped_row
+  if self.sequencer.state == 1 then
+    -- sequence sequencers
+  else
+    if on and row == self.height and col < self.width - 1 then
+      -- toggle sequence from keyboard
+      self.sequencer:toggle_note(col)
+    elseif on and row < self.height then
+      -- check if other buttons are pressed
+      local row_other = nil
+      local col_other = nil
+      for k, _ in pairs(self.pressed_buttons) do
+        local r, c = k:match("(%d+),(%d+)")
+        r, c = tonumber(r), tonumber(c)
+        if not (r == row and c == col) and r < self.height then
+          row_other = r
+          col_other = c
+          break
         end
       end
-    else
-      -- toggle specific position
-      print(flipped_row, col)
-      local step_index = (col) + math.floor((self.sequencer.step - 1) / 16) * 16
-      self.sequencer:toggle_pos(step_index, flipped_row) -- Use flipped_row
+      if row_other ~= nil and col_other ~= nil then
+        local flipped_row_other = self.height - row_other
+        -- toggle range 
+        -- toggle each position between flipped_row_other,col_other and flipped_row,col
+        for i, coord in ipairs(get_line_coordinates(col_other, flipped_row_other, col, flipped_row)) do
+          print(i, coord[1], coord[2])
+          if i > 1 then
+            local x, y = coord[1], coord[2]
+            print(x, y)
+            local step_index = (x) + math.floor((self.sequencer.step - 1) / 16) * 16
+            self.sequencer:toggle_pos(step_index, y) -- Use flipped_row
+          end
+        end
+      else
+        -- toggle specific position
+        print(flipped_row, col)
+        local step_index = (col) + math.floor((self.sequencer.step - 1) / 16) * 16
+        self.sequencer:toggle_pos(step_index, flipped_row) -- Use flipped_row
+      end
+    elseif on and row == self.height and col == self.width then
+      self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
     end
-  elseif on and row == self.height and col == self.width then
-    self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
   end
 end
 
@@ -179,7 +183,8 @@ function GGrid:get_visual()
       -- show current step
       for i = 1, self.height - 1 do
         local v = self.visual[i][(self.sequencer.step - 1) % self.width + 1]
-        v = v + 7
+        local note_index = self.sequencer:get_note_index(1)
+        v = v + util.round(util.linlin(0, self.sequencer.note_max, 2, 15, note_index))
         if v > 15 then v = 15 end
         self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
       end
