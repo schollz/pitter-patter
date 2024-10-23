@@ -34,9 +34,11 @@ function Sequence:init()
   self.matrix_sequence_m = {}
   for i = 1, 16 do self.matrix_sequence_m[i] = 0 end
   self.matrix_sequence_m[1] = 1
-  self.matrix_sequence_m[2] = 4
+  self.matrix_sequence_m[2] = 1
+  self.matrix_sequence_m[3] = 2
   self.matrix_sequence_m[4] = 2
   self.matrix_sequence_cur = 1
+  self.matrix_sequence_ind = 1
   self.matrix_sequence_step = 0
 
   self.velocity_profiles = {
@@ -46,7 +48,7 @@ function Sequence:init()
   self.matrix = matrix
   self.notes_to_ghost = {}
   self.step = 1
-  self.state = 1 -- sequence, chain
+  self.state = 1 -- 0=sequence, 1=chain
   self.step_last = 1
   self.step_next = 1
   self.movement = 1
@@ -515,6 +517,16 @@ function Sequence:marshal()
   return data
 end
 
+function Sequence:reset_timer()
+  -- reset all the sequences to 0
+  self.step_time_last = clock.get_beats()
+  self.step_time_before_last = self.step_time_last
+  --   self.matrix_sequence_cur = 1
+  --   self.matrix_sequence_step = 0
+  -- set position to 1
+  self.step = 1
+end
+
 function Sequence:unmarshal(data)
   self.matrix = data.matrix
   self.step = data.step
@@ -587,16 +599,19 @@ function Sequence:update(division, beat)
       print("adding note", random_i, random_j)
     end
   end
-  if ((beat - 1) % self:get_param("limit")) + 1 == 1 then
+  if self.step == self:get_param("limit") then
     self.matrix_sequence_step = self.matrix_sequence_step + 1
     local seq = {}
-    for i = 1, 16 do if self.matrix_sequence_m[i] > 0 then table.insert(seq, i) end end
-
+    for i = 1, 16 do if self.matrix_sequence_m[i] > 0 then table.insert(seq, {self.matrix_sequence_m[i], i}) end end
     if #seq == 0 then
       self.matrix_sequence_cur = 1
+      self.matrix_sequence_ind = 1
     else
-      self.matrix_sequence_cur = seq[(self.matrix_sequence_step - 1) % #seq + 1]
+      local x = (self.matrix_sequence_step - 1) % #seq + 1
+      self.matrix_sequence_cur = seq[x][1]
+      self.matrix_sequence_ind = seq[x][2]
     end
+    self:set_param("sequence", self.matrix_sequence_cur)
   end
   self.last_beat = self.beat
   self.beat = beat and beat or self.last_beat + 1

@@ -102,6 +102,13 @@ function GGrid:key_press(row, col, on)
   end
   if self.sequencer.state == 1 then
     -- sequence sequencers
+    if on and row < self.height then
+      self.sequencer.matrix_sequence_m[col] = self.sequencer.matrix_sequence_m[col] == row and 0 or row
+    elseif on and row == self.height and col < self.width then
+      self.sequencer:set_param("sequence", col)
+    elseif not on and row == self.height and col == self.width then
+      self.sequencer.state = 1 - self.sequencer.state
+    end
   else
     if on and row == self.height and col < self.width - 1 then
       -- toggle sequence from keyboard
@@ -138,8 +145,9 @@ function GGrid:key_press(row, col, on)
         local step_index = (col) + math.floor((self.sequencer.step - 1) / 16) * 16
         self.sequencer:toggle_pos(step_index, flipped_row) -- Use flipped_row
       end
-    elseif on and row == self.height and col == self.width then
-      self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
+    elseif not on and row == self.height and col == self.width and time_on < 0.25 then
+      self.sequencer.state = 1 - self.sequencer.state
+      --   self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
     end
   end
 end
@@ -153,12 +161,12 @@ function GGrid:get_visual()
     local row, col = k:match("(%d+),(%d+)")
     row = tonumber(row)
     col = tonumber(col)
-    if row == self.height and col == self.width and v ~= 1234 then
+    if row == self.height and col == self.width and v ~= 1234 and self.sequencer ~= nil and self.sequencer.state == 0 then
       local ct = clock.get_beats() * clock.get_beat_sec()
-      if ct - v > 0.5 then
+      if ct - v > 0.75 then
         print("time on: ", ct - v)
-        self.pressed_buttons[k] = 1234
-        self.sequencer.state = 1 - self.sequencer.state
+        self.pressed_buttons[k] = ct - 0.5
+        self.sequencer.note_offset = math.floor((self.sequencer.note_offset + 7) / 7) * 7
       end
     end
     self.visual[tonumber(row)][tonumber(col)] = 15
@@ -189,6 +197,13 @@ function GGrid:get_visual()
         self.visual[i][(self.sequencer.step - 1) % self.width + 1] = v
       end
 
+      -- show limit
+      local limit = self.sequencer:get_param("limit")
+      limit = limit > self.width and self.width or limit
+      for i = 1, self.height - 1 do
+        for j = 1, limit do if self.visual[i][j] == 0 then self.visual[i][j] = 1 end end
+      end
+
       -- show keyboard
       for col = 1, self.width - 1 do
         local note_index = self.sequencer:get_note_index(col)
@@ -202,10 +217,10 @@ function GGrid:get_visual()
         if v > 0 and v < self.height then self.visual[v][i] = self.sequencer.matrix_sequence_cur == i and 10 or 5 end
       end
       for i = 1, self.height - 1 do
-        local v = self.visual[i][self.sequencer.matrix_sequence_cur]
-        v = v + 5
+        local v = self.visual[i][self.sequencer.matrix_sequence_ind]
+        v = v + 2
         if v > 15 then v = 15 end
-        self.visual[i][self.sequencer.matrix_sequence_cur] = v
+        self.visual[i][self.sequencer.matrix_sequence_ind] = v
 
       end
       -- sohw the current sequencer
