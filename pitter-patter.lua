@@ -1,4 +1,4 @@
--- pitter-patter v2.0.0
+-- pitter-patter v2.1.0
 --
 --
 -- llllllll.co/t/pitter-patter
@@ -318,6 +318,7 @@ function params_main()
           -- print("clock")
           return
         end
+
         -- tab.print(d)
         -- print(dev.name,dev.ch,midi_devices[params:get("main_midi_input")],params:get("main_midi_channel"))
         -- visualize ccs
@@ -332,6 +333,14 @@ function params_main()
         end
         if d.ch ~= nil and d.ch ~= midi_channels[params:get("main_midi_channel")] and params:get("main_midi_channel") >
             2 then do return end end
+        -- listen to any start/continue command
+        -- OP-1 fix for transport
+        if d.type == 'start' or d.type == 'continue' then
+          params:set("main_play", 1)
+        elseif d.type == "stop" then
+          params:set("main_play", 0)
+        end
+
         if d.type == "note_on" then
           -- print("note_on", dev.name, d.note, d.vel)
           sequencers[params:get("main_sequence")]:toggle_from_note(d.note)

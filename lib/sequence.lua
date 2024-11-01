@@ -549,11 +549,27 @@ end
 function Sequence:marshal()
   local data = {}
   data.matrix = self.matrix
+  data.matrix_sequence_m = self.matrix_sequence_m
+  data.matrix_sequence_cur = self.matrix_sequence_cur
+  data.matrix_sequence_ind = self.matrix_sequence_ind
+  data.matrices = self.matrices
   data.step = self.step
   data.movement = self.movement
   data.notes_to_ghost = self.notes_to_ghost
   data.note_offset = self.note_offset
   return data
+end
+
+function Sequence:unmarshal(data)
+  self.matrix = data.matrix
+  self.matrix_sequence_m = data.matrix_sequence_m
+  self.matrix_sequence_cur = data.matrix_sequence_cur
+  self.matrix_sequence_ind = data.matrix_sequence_ind
+  self.matrices = data.matrices
+  self.step = data.step
+  self.movement = data.movement
+  self.notes_to_ghost = data.notes_to_ghost
+  self.note_offset = data.note_offset
 end
 
 function Sequence:reset_timer()
@@ -564,14 +580,6 @@ function Sequence:reset_timer()
   --   self.matrix_sequence_step = 0
   -- set position to 1
   self.step = 1
-end
-
-function Sequence:unmarshal(data)
-  self.matrix = data.matrix
-  self.step = data.step
-  self.movement = data.movement
-  self.notes_to_ghost = data.notes_to_ghost
-  self.note_offset = data.note_offset
 end
 
 function Sequence:get_velocity_profile()
